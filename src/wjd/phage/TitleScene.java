@@ -31,18 +31,7 @@ import wjd.math.V2;
 public class TitleScene extends Scene
 {
   /* CONSTANTS */
-
-  /* FUNCTIONS */
-
-  /* ATTRIBUTES */
-
-  /* METHODS */
-
-  // constructors
-
-  // mutators
-  
-  // accessors
+  private static final V2 HELLO_POS = new V2(100, 100);
   
   /* IMPLEMENTATIONS -- SCENE */
   
@@ -54,7 +43,14 @@ public class TitleScene extends Scene
 
   @Override
   public EUpdateResult processKeyPress(KeyPress event)
-  {
+  {    
+    if(event.key == IInput.EKeyCode.ENTER && event.state)
+    {
+      next = new LevelScene();
+      return EUpdateResult.STOP;
+    }
+    else if(event.key == IInput.EKeyCode.ESC && event.state)
+      return EUpdateResult.STOP;
     return EUpdateResult.CONTINUE;
   }
 
@@ -74,6 +70,6 @@ public class TitleScene extends Scene
   public void render(ICanvas canvas)
   {
     canvas.clear();
-    canvas.text("Hello Title", V2.ORIGIN);
+    canvas.text("Hello Title", HELLO_POS);
   }
 }

@@ -22,10 +22,9 @@ import wjd.amb.control.IInput.EKeyCode;
 import wjd.amb.control.IInput.KeyPress;
 import wjd.amb.control.IInput.MouseClick;
 import wjd.amb.model.Scene;
-import wjd.amb.view.Camera;
+import wjd.amb.view.ICamera;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
-import wjd.amb.window.IWindow;
 import wjd.math.Rect;
 import wjd.math.V2;
 
@@ -44,19 +43,18 @@ class LevelScene extends Scene
   }
   
   /* CONSTANTS */
-  private static final V2 HELLO_POS = new V2(100, 100);
-  private static final String HELLO_TEXT = "Hello LevelScene!";
-  private static final V2 GRID_SIZE = new V2(40, 30);
+  private static final V2 GRID_SIZE = new V2(100, 60);
   private static final V2 CELL_SIZE = new V2(32, 32);
 
   /* ATTRIBUTES */
   private Tile[][] tilegrid;
+  private StrategyCamera camera;
 
   /* METHODS */
 
   // constructors
-  public LevelScene(IWindow window)
-  {
+  public LevelScene()
+  {    
     // model
     tilegrid = new Tile[(int)GRID_SIZE.y()][(int)GRID_SIZE.x()]; 
     for(int row = 0; row < tilegrid.length; row++)
@@ -65,6 +63,9 @@ class LevelScene extends Scene
         tilegrid[row][col] = new Tile();
         tilegrid[row][col].type = (Math.random() > 0.5) ? 1 : 0;
       }
+    
+    // view
+    camera = new StrategyCamera(null); // FIXME add boundary
   }
 
   // mutators
@@ -84,12 +85,12 @@ class LevelScene extends Scene
   public void render(ICanvas canvas)
   {
     if(!canvas.isCameraActive())
-      canvas.createCamera(null);
+      canvas.setCamera(camera);
     
     // clear the screen
     canvas.clear();
     
-    // fin out what cells the camera can see
+    // find out what cells the camera can see
     V2 min = new V2(), max = new V2();
     camera.getVisibleGridCells(min, max, GRID_SIZE, 1/CELL_SIZE.x());
 
@@ -98,19 +99,12 @@ class LevelScene extends Scene
       row < Math.min(tilegrid.length, max.y()); row++)
     for(int col = (int)Math.max(0, min.x()); 
       col < Math.min(tilegrid[row].length, max.x()); col++)
-        renderTile(row, col, canvas, camera);
-
-    // draw hello text
-    canvas.setColour(Colour.BLACK);
-    canvas.text(HELLO_TEXT, camera.getPerspective(HELLO_POS));
+        renderTile(row, col, canvas);
   }
 
   @Override
   public EUpdateResult processStaticInput(IInput input)
   {
-    // update the camera position from input
-    camera.processInput(input);
-
     // stay in this Scene if nothing interesting has happened
     return EUpdateResult.CONTINUE; 
   }
@@ -123,6 +117,8 @@ class LevelScene extends Scene
       next = new TitleScene();
       return EUpdateResult.STOP;
     }
+    else if(event.key == IInput.EKeyCode.ESC && event.state)
+      return EUpdateResult.STOP;
     
     // stay in this Scene if nothing interesting has happened
     return EUpdateResult.CONTINUE;
@@ -137,16 +133,19 @@ class LevelScene extends Scene
   
   /* SUBROUTINES */
  
-  private void renderTile(int row, int col, ICanvas canvas, Camera camera)
+  private static Rect stamp = new Rect();
+  private static V2 stamp_pos = new V2(), stamp_size = new V2();
+  private void renderTile(int row, int col, ICanvas canvas)
   {
     Tile tile = tilegrid[row][col];
     
     // draw tile -- setup context
     canvas.setColour(tile.type == 0 ? Colour.RED : Colour.BLUE);
+    
     // draw tile
-    Rect box = new Rect(
-      camera.getPerspective(new V2(col*CELL_SIZE.x(), row*CELL_SIZE.x())),
-      CELL_SIZE).scale(camera.getZoom());
-    canvas.box(box);
+    stamp_pos.xy(col*CELL_SIZE.x(), row*CELL_SIZE.y());
+    stamp_size.reset(CELL_SIZE).scale(camera.getZoom()+1);
+    stamp.reset(stamp_pos, stamp_size);
+    canvas.box(stamp);
   }
 }
