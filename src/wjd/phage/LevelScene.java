@@ -21,11 +21,9 @@ import wjd.amb.control.IInput;
 import wjd.amb.control.IInput.EKeyCode;
 import wjd.amb.control.IInput.KeyPress;
 import wjd.amb.control.IInput.MouseClick;
+import wjd.amb.control.IInteractive;
 import wjd.amb.model.Scene;
-import wjd.amb.view.ICamera;
-import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
-import wjd.math.Rect;
 import wjd.math.V2;
 
 /** 
@@ -34,21 +32,21 @@ import wjd.math.V2;
 */
 class LevelScene extends Scene 
 {
-  /* NESTING */
+  /* CONSTANTS */
+  public static final V2 GRIDSIZE = new V2(100, 60);
   
-  private static class Tile
+  /* NESTING */
+  private static interface Controller
   {
-    public int type;
 
+    public EUpdateResult processStaticInput(IInput input);
+    
   }
   
-  /* CONSTANTS */
-  private static final V2 GRID_SIZE = new V2(100, 60);
-  private static final V2 CELL_SIZE = new V2(32, 32);
-
   /* ATTRIBUTES */
   private Tile[][] tilegrid;
   private StrategyCamera camera;
+  private Controller controller;
 
   /* METHODS */
 
@@ -56,13 +54,13 @@ class LevelScene extends Scene
   public LevelScene()
   {    
     // model
-    tilegrid = new Tile[(int)GRID_SIZE.y()][(int)GRID_SIZE.x()]; 
+    tilegrid = new Tile[(int)GRIDSIZE.y()][(int)GRIDSIZE.x()]; 
     for(int row = 0; row < tilegrid.length; row++)
       for(int col = 0; col < tilegrid[row].length; col++)
-      {  
-        tilegrid[row][col] = new Tile();
-        tilegrid[row][col].type = (Math.random() > 0.5) ? 1 : 0;
-      }
+        tilegrid[row][col] = new Tile(row, col, (Math.random() > 0.5) 
+                                  ? Tile.Type.FLOOR : Tile.Type.WALL);
+    
+    tilegrid[0][0].setUnit(new Unit(tilegrid[0][0]));
     
     // view
     camera = new StrategyCamera(null); // FIXME add boundary
@@ -81,6 +79,7 @@ class LevelScene extends Scene
     return EUpdateResult.CONTINUE;
   }
 
+  private static V2 min = new V2(), max = new V2();
   @Override
   public void render(ICanvas canvas)
   {
@@ -91,61 +90,13 @@ class LevelScene extends Scene
     canvas.clear();
     
     // find out what cells the camera can see
-    V2 min = new V2(), max = new V2();
-    camera.getVisibleGridCells(min, max, GRID_SIZE, 1/CELL_SIZE.x());
+    camera.getVisibleGridCells(min, max, GRIDSIZE, Tile.ISIZE.x());
 
     // draw each cell
     for(int row = (int)Math.max(0, min.y()); 
       row < Math.min(tilegrid.length, max.y()); row++)
     for(int col = (int)Math.max(0, min.x()); 
       col < Math.min(tilegrid[row].length, max.x()); col++)
-        renderTile(row, col, canvas);
-  }
-
-  @Override
-  public EUpdateResult processStaticInput(IInput input)
-  {
-    // stay in this Scene if nothing interesting has happened
-    return EUpdateResult.CONTINUE; 
-  }
-
-  @Override
-  public EUpdateResult processKeyPress(KeyPress event)
-  {
-    if(event.key == EKeyCode.ENTER && event.state)
-    {
-      next = new TitleScene();
-      return EUpdateResult.STOP;
-    }
-    else if(event.key == IInput.EKeyCode.ESC && event.state)
-      return EUpdateResult.STOP;
-    
-    // stay in this Scene if nothing interesting has happened
-    return EUpdateResult.CONTINUE;
-  }
-
-  @Override
-  public EUpdateResult processMouseClick(MouseClick event)
-  {
-    // stay in this Scene if nothing interesting has happened
-    return EUpdateResult.CONTINUE;
-  }
-  
-  /* SUBROUTINES */
- 
-  private static Rect stamp = new Rect();
-  private static V2 stamp_pos = new V2(), stamp_size = new V2();
-  private void renderTile(int row, int col, ICanvas canvas)
-  {
-    Tile tile = tilegrid[row][col];
-    
-    // draw tile -- setup context
-    canvas.setColour(tile.type == 0 ? Colour.RED : Colour.BLUE);
-    
-    // draw tile
-    stamp_pos.xy(col*CELL_SIZE.x(), row*CELL_SIZE.y());
-    stamp_size.reset(CELL_SIZE).scale(camera.getZoom()+1);
-    stamp.reset(stamp_pos, stamp_size);
-    canvas.box(stamp);
+        tilegrid[row][col].render(canvas);
   }
 }
