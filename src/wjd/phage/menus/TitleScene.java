@@ -14,51 +14,61 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package wjd.phage;
+package wjd.phage.menus;
 
+import wjd.amb.control.Controller;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IInput;
 import wjd.amb.control.IInput.KeyPress;
-import wjd.amb.control.IInput.MouseClick;
-import wjd.amb.model.Scene;
+import wjd.amb.model.AScene;
 import wjd.amb.view.ICanvas;
 import wjd.math.V2;
+import wjd.phage.level.LevelScene;
 
 /** 
 * @author wdyce
 * @since 10-Oct-2012
 */
-public class TitleScene extends Scene
+public class TitleScene extends AScene
 {
   /* CONSTANTS */
   private static final V2 HELLO_POS = new V2(100, 100);
   
-  /* IMPLEMENTATIONS -- SCENE */
-  
-  @Override
-  public EUpdateResult processStaticInput(IInput input)
+  /* NESTING */
+  private static class TitleController extends Controller
   {
-    return EUpdateResult.CONTINUE;
-  }
-
-  @Override
-  public EUpdateResult processKeyPress(KeyPress event)
-  {    
-    if(event.key == IInput.EKeyCode.ENTER && event.state)
+    // attributes
+    private TitleScene title;
+    
+    // methods
+    TitleController(TitleScene title)
     {
-      next = new LevelScene();
-      return EUpdateResult.STOP;
+      this.title = title;
     }
-    else if(event.key == IInput.EKeyCode.ESC && event.state)
-      return EUpdateResult.STOP;
-    return EUpdateResult.CONTINUE;
+    // implementations
+    @Override
+    public EUpdateResult processKeyPress(KeyPress event)
+    {    
+      if(event.key == IInput.EKeyCode.ENTER && event.state)
+      {
+        title.setNext(new LevelScene());
+        return EUpdateResult.STOP;
+      }
+      else if(event.key == IInput.EKeyCode.ESC && event.state)
+        return EUpdateResult.STOP;
+      return EUpdateResult.CONTINUE;
+    }
   }
-
-  @Override
-  public EUpdateResult processMouseClick(MouseClick event)
+  
+  /* METHODS */
+  
+  // constructors
+  public TitleScene()
   {
-    return EUpdateResult.CONTINUE;
+    setController(new TitleController(this));
   }
+  
+  /* IMPLEMENTATIONS -- SCENE */
 
   @Override
   public EUpdateResult update(int t_delta)

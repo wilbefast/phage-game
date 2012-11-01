@@ -14,7 +14,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package wjd.phage;
+package wjd.phage.level;
 
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
@@ -59,6 +59,11 @@ public class Tile implements IVisible
   public V2 getPosition()
   {
     return position;
+  }
+  
+  public Unit getUnit()
+  {
+    return unit;
   }
 
   // mutators

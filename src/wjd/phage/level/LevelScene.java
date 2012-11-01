@@ -14,89 +14,107 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package wjd.phage;
+package wjd.phage.level;
 
+import wjd.phage.play.PlayController;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import wjd.amb.control.EUpdateResult;
-import wjd.amb.control.IInput;
-import wjd.amb.control.IInput.EKeyCode;
-import wjd.amb.control.IInput.KeyPress;
-import wjd.amb.control.IInput.MouseClick;
-import wjd.amb.control.IInteractive;
-import wjd.amb.model.Scene;
+import wjd.amb.model.AScene;
 import wjd.amb.view.ICanvas;
 import wjd.math.V2;
+import wjd.phage.StrategyCamera;
 
-/** 
-* @author wdyce
-* @since 05-Oct-2012
-*/
-class LevelScene extends Scene 
+/**
+ * @author wdyce
+ * @since 05-Oct-2012
+ */
+public class LevelScene extends AScene implements Serializable
 {
   /* CONSTANTS */
-  public static final V2 GRIDSIZE = new V2(100, 60);
-  
-  /* NESTING */
-  private static interface Controller
-  {
 
-    public EUpdateResult processStaticInput(IInput input);
-    
-  }
-  
+  public static final V2 GRIDSIZE = new V2(100, 60);
+
   /* ATTRIBUTES */
   private Tile[][] tilegrid;
   private StrategyCamera camera;
-  private Controller controller;
 
   /* METHODS */
-
   // constructors
   public LevelScene()
-  {    
+  {
+    // control
+    setController(new PlayController(this));
+
     // model
-    tilegrid = new Tile[(int)GRIDSIZE.y()][(int)GRIDSIZE.x()]; 
-    for(int row = 0; row < tilegrid.length; row++)
-      for(int col = 0; col < tilegrid[row].length; col++)
-        tilegrid[row][col] = new Tile(row, col, (Math.random() > 0.5) 
-                                  ? Tile.Type.FLOOR : Tile.Type.WALL);
-    
+    tilegrid = new Tile[(int) GRIDSIZE.y()][(int) GRIDSIZE.x()];
+    for (int row = 0; row < tilegrid.length; row++)
+      for (int col = 0; col < tilegrid[row].length; col++)
+        tilegrid[row][col] = new Tile(row, col, (Math.random() > 0.5)
+                                                ? Tile.Type.FLOOR : Tile.Type.WALL);
+
+    /// FIXME -- create initial test unit
     tilegrid[0][0].setUnit(new Unit(tilegrid[0][0]));
-    
+
     // view
     camera = new StrategyCamera(null); // FIXME add boundary
   }
 
   // mutators
-  
   // accessors
-  
-  /* IMPLEMENTS -- SCENE */
+  public V2 getGridPos(V2 perspective_pos)
+  {
+    return camera.getGlobal(perspective_pos).shrink(Tile.SIZE).floor();
+  }
 
+  public Tile getTile(V2 grid_pos)
+  {
+    return tilegrid[(int) grid_pos.y()][(int) grid_pos.x()];
+  }
+
+  /* IMPLEMENTS -- SCENE */
+  
   @Override
   public EUpdateResult update(int t_delta)
   {
     // stay in this Scene if nothing interesting has happened
     return EUpdateResult.CONTINUE;
   }
-
   private static V2 min = new V2(), max = new V2();
+
   @Override
   public void render(ICanvas canvas)
   {
-    if(!canvas.isCameraActive())
+    if (!canvas.isCameraActive())
       canvas.setCamera(camera);
-    
+
     // clear the screen
     canvas.clear();
-    
+
     // find out what cells the camera can see
     camera.getVisibleGridCells(min, max, GRIDSIZE, Tile.ISIZE.x());
 
     // draw each cell
-    for(int row = (int)Math.max(0, min.y()); 
-      row < Math.min(tilegrid.length, max.y()); row++)
-    for(int col = (int)Math.max(0, min.x()); 
-      col < Math.min(tilegrid[row].length, max.x()); col++)
+    for (int row = (int) Math.max(0, min.y());
+         row < Math.min(tilegrid.length, max.y()); row++)
+      for (int col = (int) Math.max(0, min.x());
+           col < Math.min(tilegrid[row].length, max.x()); col++)
         tilegrid[row][col].render(canvas);
+  }
+
+  /* IMPLEMENTS -- SERIALIZABLE */
+
+  private void readObject(ObjectInputStream in) 
+    throws ClassNotFoundException, IOException
+  {
+    in.defaultReadObject();
+  }
+
+  private void writeObject(ObjectOutputStream out) 
+    throws IOException
+  {
+    out.defaultWriteObject();
   }
 }

@@ -14,8 +14,9 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package wjd.phage;
+package wjd.phage.level;
 
+import wjd.phage.level.Tile;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
@@ -30,7 +31,7 @@ public class Unit implements IVisible
 {
   /* ATTRIBUTES */
   private Tile tile;
-  private boolean selected;
+  private boolean selected = false;
   
   /* METHODS */
 
@@ -41,8 +42,13 @@ public class Unit implements IVisible
   }
 
   // accessors
+  public boolean isSelected() { return selected; }
 
   // mutators
+  public void setSelected(boolean selected)
+  {
+    this.selected = selected;
+  }
   
   /* IMPLEMENTS -- IVISIBLE */
   private static V2 stamp_pos = new V2();
@@ -51,7 +57,7 @@ public class Unit implements IVisible
   {
     canvas.setColour(selected ? Colour.WHITE : Colour.BLACK);
     
-    stamp_pos.reset(tile.getPosition()).add(Tile.HSIZE);
+    stamp_pos.reset(tile.getPosition()).scale(Tile.SIZE).add(Tile.HSIZE);
     canvas.circle(stamp_pos, Tile.SIZE.x()/2);
   }
 }
