@@ -33,9 +33,9 @@ public class Tile implements IVisible
   public static final V2 SIZE = new V2(32, 32);
   public static final V2 HSIZE = SIZE.clone().scale(0.5f);
   public static final V2 ISIZE = SIZE.clone().inv();
-  
+
   /* NESTING */
-  public static enum Type
+  public static enum EType
   {
     FLOOR,
     WALL
@@ -43,13 +43,13 @@ public class Tile implements IVisible
   
   /* ATTRIBUTES */
   private V2 position;
-  private Type type;
+  private EType type;
   private Unit unit = null;
   
   /* METHODS */
 
   // constructors
-  public Tile(int row, int col, Type type)
+  public Tile(int row, int col, EType type)
   {
     position = new V2(col, row);
     this.type = type;
@@ -68,6 +68,12 @@ public class Tile implements IVisible
 
   // mutators
   
+  public void setType(EType type)
+  {
+    this.type = type;
+  }
+  
+  
   public void setUnit(Unit unit)
   {
     this.unit = unit;
@@ -82,7 +88,7 @@ public class Tile implements IVisible
   public void render(ICanvas canvas)
   {
     // draw tile -- setup context
-    canvas.setColour(type == Type.FLOOR ? Colour.RED : Colour.BLUE);
+    canvas.setColour(type == EType.FLOOR ? Colour.RED : Colour.BLUE);
     
     // draw tile -- background
     stamp_pos.reset(position).scale(SIZE);

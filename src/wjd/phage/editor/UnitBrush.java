@@ -14,38 +14,28 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package wjd.phage.play;
+package wjd.phage.editor;
 
-import wjd.amb.control.Controller;
-import wjd.amb.control.EUpdateResult;
-import wjd.amb.control.IInput;
-import wjd.phage.level.LevelController;
-import wjd.phage.level.LevelScene;
 import wjd.phage.level.Tile;
-import wjd.phage.level.Unit;
 
 /**
  *
  * @author wdyce
- * @since Nov 1, 2012
+ * @since Nov 2, 2012
  */
-public class PlayController extends LevelController
+public class UnitBrush implements IBrush
 {
-  /* ATTRIBUTES */
-  
-  /* METHODS */
-
-  // constructors
-  public PlayController(LevelScene level)
-  {
-    super(level);
-  }
-  
-  /* OVERRIDES -- CONTROLLER */
+  /* IMPLEMENTS -- IBRUSH */
   
   @Override
-  public EUpdateResult processMouseClick(IInput.MouseClick event)
+  public void paint(Tile target, boolean erase)
   {
-    return EUpdateResult.CONTINUE;
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void changeColour(int delta)
+  {
+    throw new UnsupportedOperationException("Not supported yet.");
   }
 }

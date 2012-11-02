@@ -16,52 +16,43 @@
  */
 package wjd.phage.editor;
 
-import wjd.phage.level.Unit;
-import wjd.phage.level.Tile;
-import wjd.phage.level.LevelScene;
-import wjd.amb.control.Controller;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IInput;
-import wjd.phage.*;
+import wjd.phage.level.LevelController;
+import wjd.phage.level.LevelScene;
+import wjd.phage.level.Tile;
 
 /**
  *
  * @author wdyce
  * @since Nov 1, 2012
  */
-public class EditorController extends Controller
+public class EditorController extends LevelController
 {
   /* ATTRIBUTES */
-  LevelScene level;
+  IBrush brush;
   
   /* METHODS */
 
   // constructors
   public EditorController(LevelScene level)
   {
-    this.level = level;
+    super(level);
   }
   
   /* OVERRIDES -- CONTROLLER */
   
   @Override
-  public EUpdateResult processMouseClick(IInput.MouseClick event)
+  public EUpdateResult processInput(IInput input)
   {
-    if(event.button == IInput.EMouseButton.LEFT)
-    {
-      if(event.state)
-      {
-        Tile tile = 
-          level.getTile(level.getGridPos(event.input.getMousePosition()));
-
-        Unit unit = tile.getUnit();
-        
-        if(unit != null)
-          unit.setSelected(!unit.isSelected());
-        else
-          tile.setUnit(new Unit(tile));
-      }
-    }
+    // change brush "colour"
+    brush.changeColour(input.getMouseWheelDelta());
+    
+    // "paint" or "erase" using the current brush
+    if(input.isMouseClicking(IInput.EMouseButton.LEFT))
+      brush.paint(level.perspectiveToTile(input.getMousePosition()), false);
+    else if(input.isMouseClicking(IInput.EMouseButton.RIGHT))
+      brush.paint(level.perspectiveToTile(input.getMousePosition()), true);
     
     return EUpdateResult.CONTINUE;
   }

@@ -14,38 +14,26 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package wjd.phage.play;
+package wjd.phage.level;
 
 import wjd.amb.control.Controller;
-import wjd.amb.control.EUpdateResult;
-import wjd.amb.control.IInput;
-import wjd.phage.level.LevelController;
-import wjd.phage.level.LevelScene;
-import wjd.phage.level.Tile;
-import wjd.phage.level.Unit;
 
 /**
  *
  * @author wdyce
- * @since Nov 1, 2012
+ * @since Nov 2, 2012
  */
-public class PlayController extends LevelController
+public abstract class LevelController extends Controller
 {
   /* ATTRIBUTES */
+  protected LevelScene level;
   
   /* METHODS */
-
+  
   // constructors
-  public PlayController(LevelScene level)
+  public LevelController(LevelScene level)
   {
-    super(level);
+    this.level = level;
   }
-  
-  /* OVERRIDES -- CONTROLLER */
-  
-  @Override
-  public EUpdateResult processMouseClick(IInput.MouseClick event)
-  {
-    return EUpdateResult.CONTINUE;
-  }
+
 }

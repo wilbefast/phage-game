@@ -16,7 +16,6 @@
  */
 package wjd.phage.level;
 
-import wjd.phage.play.PlayController;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -26,6 +25,7 @@ import wjd.amb.model.AScene;
 import wjd.amb.view.ICanvas;
 import wjd.math.V2;
 import wjd.phage.StrategyCamera;
+import wjd.phage.play.PlayController;
 
 /**
  * @author wdyce
@@ -53,7 +53,7 @@ public class LevelScene extends AScene implements Serializable
     for (int row = 0; row < tilegrid.length; row++)
       for (int col = 0; col < tilegrid[row].length; col++)
         tilegrid[row][col] = new Tile(row, col, (Math.random() > 0.5)
-                                                ? Tile.Type.FLOOR : Tile.Type.WALL);
+                                                ? Tile.EType.FLOOR : Tile.EType.WALL);
 
     /// FIXME -- create initial test unit
     tilegrid[0][0].setUnit(new Unit(tilegrid[0][0]));
@@ -63,17 +63,13 @@ public class LevelScene extends AScene implements Serializable
   }
 
   // mutators
+  
   // accessors
-  public V2 getGridPos(V2 perspective_pos)
+  public Tile perspectiveToTile(V2 perspective_pos)
   {
-    return camera.getGlobal(perspective_pos).shrink(Tile.SIZE).floor();
-  }
-
-  public Tile getTile(V2 grid_pos)
-  {
+    V2 grid_pos = camera.getGlobal(perspective_pos).shrink(Tile.SIZE).floor();
     return tilegrid[(int) grid_pos.y()][(int) grid_pos.x()];
   }
-
   /* IMPLEMENTS -- SCENE */
   
   @Override
