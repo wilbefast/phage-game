@@ -45,17 +45,37 @@ public class TitleScene extends AScene
     {
       this.title = title;
     }
+    // overrides
+    public void render(ICanvas canvas)
+    {
+      
+    }
     // implementations
     @Override
     public EUpdateResult processKeyPress(KeyPress event)
     {    
-      if(event.key == IInput.EKeyCode.ENTER && event.state)
+      if(event.state)
       {
-        title.setNext(new LevelScene(LevelScene.EMode.EDITOR));
-        return EUpdateResult.STOP;
+        switch(event.key)
+        {
+          case L_SHIFT:
+          case R_SHIFT:
+            // SHIFT to edit
+            title.setNext(new LevelScene(LevelScene.EMode.EDITOR));
+            return EUpdateResult.STOP;
+            
+          case L_ALT:
+          case R_ALT:
+            // ALT to play
+            title.setNext(new LevelScene(LevelScene.EMode.PLAY));
+            return EUpdateResult.STOP;
+            
+          case ESC:
+            return EUpdateResult.STOP;
+        }
       }
-      else if(event.key == IInput.EKeyCode.ESC && event.state)
-        return EUpdateResult.STOP;
+
+      // all clear
       return EUpdateResult.CONTINUE;
     }
   }
@@ -80,6 +100,6 @@ public class TitleScene extends AScene
   public void render(ICanvas canvas)
   {
     canvas.clear();
-    canvas.text("Hello Title", HELLO_POS);
+    canvas.text("Press SHIFT to edit, CTRL to play", HELLO_POS);
   }
 }

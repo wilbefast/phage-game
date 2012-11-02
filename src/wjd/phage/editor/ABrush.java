@@ -16,6 +16,8 @@
  */
 package wjd.phage.editor;
 
+import wjd.amb.view.IVisible;
+import wjd.math.V2;
 import wjd.phage.level.Tile;
 
 /**
@@ -23,11 +25,20 @@ import wjd.phage.level.Tile;
  * @author wdyce
  * @since Nov 2, 2012
  */
-public interface IBrush
+public abstract class ABrush implements IVisible
 {
+  /* ATTRIBUTES */
+  protected V2 position = new V2();
+  
+  /* METHODS */
+  public void setPosition(V2 new_position)
+  {
+    position.reset(new_position);
+  }
+  
   /* INTERFACE */
-  public void paint(Tile target);
-  public void changeColour();
+  public abstract void paint(Tile target);
+  public abstract void changeColour();
 }
 
 

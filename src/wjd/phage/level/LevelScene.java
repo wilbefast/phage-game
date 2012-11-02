@@ -72,13 +72,7 @@ public class LevelScene extends AScene
 
     // model
     tilegrid = new Tile[(int) GRIDSIZE.y][(int) GRIDSIZE.x];
-    for (int row = 0; row < tilegrid.length; row++)
-      for (int col = 0; col < tilegrid[row].length; col++)
-        tilegrid[row][col] = new Tile(row, col, (Math.random() > 0.5)
-                                                ? Tile.EType.FLOOR : Tile.EType.WALL);
-
-    /// FIXME -- create initial test unit
-    tilegrid[0][0].setUnit(new Unit(tilegrid[0][0]));
+    clear();
 
     // view
     camera = new StrategyCamera(null); // FIXME add boundary
@@ -107,7 +101,15 @@ public class LevelScene extends AScene
               : null);
   }
   
-  // load and save
+  // clear, load and save
+  
+  public void clear()
+  {
+    // set all tiles as free
+    for (int row = 0; row < tilegrid.length; row++)
+      for (int col = 0; col < tilegrid[row].length; col++)
+        tilegrid[row][col] = new Tile(row, col, Tile.EType.FLOOR);
+  }
   
   public void load(File file)
   {

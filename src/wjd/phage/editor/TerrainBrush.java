@@ -16,6 +16,9 @@
  */
 package wjd.phage.editor;
 
+import wjd.amb.view.Colour;
+import wjd.amb.view.ICanvas;
+import wjd.math.Rect;
 import wjd.phage.level.Tile;
 
 /**
@@ -23,7 +26,7 @@ import wjd.phage.level.Tile;
  * @author wdyce
  * @since Nov 2, 2012
  */
-public class TerrainBrush implements IBrush
+public class TerrainBrush extends ABrush
 {
   /* ATTRIBUTES */
   private Tile.EType colour = Tile.EType.FLOOR;
@@ -55,5 +58,25 @@ public class TerrainBrush implements IBrush
         colour = Tile.EType.FLOOR;
         break;
     }
+  }
+  
+  /* IMPLEMENTS -- IVISIBLE */
+
+  private static Rect stamp = new Rect(Tile.SIZE);
+  @Override
+  public void render(ICanvas canvas)
+  {
+    stamp.pos(position).unshift(Tile.HSIZE);
+    switch(colour)
+    {
+      case FLOOR:
+        canvas.setColour(Colour.VIOLET);
+      break;
+
+      case WALL:
+        canvas.setColour(Colour.TEAL);
+      break;
+    }
+    canvas.box(stamp);
   }
 }

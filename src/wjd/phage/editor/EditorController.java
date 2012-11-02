@@ -23,6 +23,7 @@ import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IInput;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
+import wjd.math.Rect;
 import wjd.math.V2;
 import wjd.phage.level.LevelController;
 import wjd.phage.level.LevelScene;
@@ -57,11 +58,12 @@ public class EditorController extends LevelController
       return "Game level (LVL) files";
     }
   };
-  private static final IBrush[] BRUSHES = 
+  private static final ABrush[] BRUSHES = 
   { 
     new TerrainBrush(), 
     new UnitBrush() 
   };
+  private static final Rect GUI_BOX = new Rect(0, 0, 640, 32);
   private static final String gui_txt[] =
   {
     "Save: CTRL", 
@@ -70,7 +72,7 @@ public class EditorController extends LevelController
   };
   private static final V2 gui_pos[] = 
   {
-    new V2(32, 16), new V2(128, 16), new V2(224, 16)
+    new V2(32, 8), new V2(128, 8), new V2(224, 8)
   };
   
     
@@ -82,6 +84,7 @@ public class EditorController extends LevelController
  
   /* ATTRIBUTES */
   private int brush_i = 0;
+  private Tile previous_target = null;
   
   /* METHODS */
 
@@ -96,9 +99,15 @@ public class EditorController extends LevelController
   @Override
   public void render(ICanvas canvas)
   {
+    // draw gui
+    canvas.setColour(Colour.YELLOW);
+    canvas.box(GUI_BOX);
     canvas.setColour(Colour.BLACK);
     for(int i = 0; i < gui_txt.length; i++)
       canvas.text(gui_txt[i], gui_pos[i]);
+    
+    // draw brush paint
+    BRUSHES[brush_i].render(canvas);
   }
   
   @Override
@@ -106,7 +115,10 @@ public class EditorController extends LevelController
   {
     // change the "paint" of the current brush
     if(event.state && event.button == IInput.EMouseButton.RIGHT)
+    {
       BRUSHES[brush_i].changeColour();
+      previous_target = null;
+    }
     
     return EUpdateResult.CONTINUE;
   }
@@ -141,6 +153,7 @@ public class EditorController extends LevelController
         case R_SHIFT:
           // change brush on SHIFT
           brush_i = (brush_i + 1)%BRUSHES.length;
+          previous_target = null;
         break;
       }
     }
@@ -156,12 +169,18 @@ public class EditorController extends LevelController
     if(result != EUpdateResult.CONTINUE)
       return result;
     
+    // reset brush position
+    BRUSHES[brush_i].setPosition(input.getMousePosition());
+    
     // "paint" using the current brush
     if(input.isMouseClicking(IInput.EMouseButton.LEFT))
     {
       Tile target = level.perspectiveToTile(input.getMousePosition());
-      if(target != null)
+      if(target != null && (previous_target == null || previous_target != target))
+      {
         BRUSHES[brush_i].paint(target);
+        previous_target = target;
+      }
     }
 
     return EUpdateResult.CONTINUE;

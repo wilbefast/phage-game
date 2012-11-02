@@ -16,26 +16,39 @@
  */
 package wjd.phage.editor;
 
+import wjd.amb.view.Colour;
+import wjd.amb.view.ICanvas;
 import wjd.phage.level.Tile;
+import wjd.phage.level.Unit;
 
 /**
  *
  * @author wdyce
  * @since Nov 2, 2012
  */
-public class UnitBrush implements IBrush
+public class UnitBrush extends ABrush
 {
+  /* ATTRIBUTES */
+  private boolean erase = false;
+  
   /* IMPLEMENTS -- IBRUSH */
   
   @Override
   public void paint(Tile target)
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    target.setUnit(erase ? null : new Unit(target));
   }
 
   @Override
   public void changeColour()
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    erase = !erase;
+  }
+
+  @Override
+  public void render(ICanvas canvas)
+  {
+    canvas.setColour(Colour.GREEN);
+    canvas.circle(position, 10.0f);
   }
 }
