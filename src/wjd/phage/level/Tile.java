@@ -16,6 +16,7 @@
  */
 package wjd.phage.level;
 
+import java.io.Serializable;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
@@ -27,7 +28,7 @@ import wjd.math.V2;
  * @author wdyce
  * @since Nov 1, 2012
  */
-public class Tile implements IVisible
+public class Tile implements IVisible, Serializable
 {
   /* CONSTANTS */
   public static final V2 SIZE = new V2(32, 32);

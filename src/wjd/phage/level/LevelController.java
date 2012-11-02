@@ -17,13 +17,17 @@
 package wjd.phage.level;
 
 import wjd.amb.control.Controller;
+import wjd.amb.control.EUpdateResult;
+import wjd.amb.control.IInput;
+import wjd.amb.view.ICanvas;
+import wjd.amb.view.IVisible;
 
 /**
  *
  * @author wdyce
  * @since Nov 2, 2012
  */
-public abstract class LevelController extends Controller
+public abstract class LevelController extends Controller implements IVisible
 {
   /* ATTRIBUTES */
   protected LevelScene level;
@@ -35,5 +39,35 @@ public abstract class LevelController extends Controller
   {
     this.level = level;
   }
-
+  
+  /* IMPLEMENTS -- IVISIBLE */
+  
+  @Override
+  public void render(ICanvas canvas)
+  {
+    // overridden if needed
+  }
+  
+  /* OVERRIDES -- CONTROLLER */
+  
+  @Override
+  public EUpdateResult processInput(IInput input)
+  {
+    // control camera
+    level.getCamera().processInput(input);
+    
+    // all clear
+    return EUpdateResult.CONTINUE;
+  }
+  
+  @Override
+  public EUpdateResult processKeyPress(IInput.KeyPress event)
+  {
+    // exit on key press
+    if(event.key == IInput.EKeyCode.ESC)
+      return EUpdateResult.STOP;
+    
+    // all clear
+    return EUpdateResult.CONTINUE;
+  }
 }

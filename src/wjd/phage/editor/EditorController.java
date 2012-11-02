@@ -16,10 +16,17 @@
  */
 package wjd.phage.editor;
 
+import java.io.File;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IInput;
+import wjd.amb.view.Colour;
+import wjd.amb.view.ICanvas;
+import wjd.math.V2;
 import wjd.phage.level.LevelController;
 import wjd.phage.level.LevelScene;
+import wjd.phage.level.Tile;
 
 /**
  *
@@ -28,8 +35,53 @@ import wjd.phage.level.LevelScene;
  */
 public class EditorController extends LevelController
 {
+  /* CONSTANTS */
+  private static final JFileChooser fileChooser = new JFileChooser();
+  private static final FileFilter levelFilter = new FileFilter()
+  {
+    @Override
+    public boolean accept(File file)
+    {
+      // allow directories
+      if(file == null || file.isDirectory())
+        return true;
+      
+      String filename = file.getName(),
+             extension = filename.substring(filename.lastIndexOf('.')+1);
+      return (extension.equals("lvl"));
+    }
+
+    @Override
+    public String getDescription()
+    {
+      return "Game level (LVL) files";
+    }
+  };
+  private static final IBrush[] BRUSHES = 
+  { 
+    new TerrainBrush(), 
+    new UnitBrush() 
+  };
+  private static final String gui_txt[] =
+  {
+    "Save: CTRL", 
+    "Load: ALT", 
+    "Change Brush: SHIFT"
+  };
+  private static final V2 gui_pos[] = 
+  {
+    new V2(32, 16), new V2(128, 16), new V2(224, 16)
+  };
+  
+    
+  static
+  {
+    fileChooser.setAcceptAllFileFilterUsed(false);
+    fileChooser.addChoosableFileFilter(levelFilter);
+  }
+ 
   /* ATTRIBUTES */
-  IBrush brush;
+  private int brush_i = 0;
   
   /* METHODS */
 
@@ -37,18 +89,61 @@ public class EditorController extends LevelController
   public EditorController(LevelScene level)
   {
     super(level);
-    
-    brush = new TerrainBrush();
   }
-
+  
   /* OVERRIDES -- CONTROLLER */
+  
+  @Override
+  public void render(ICanvas canvas)
+  {
+    canvas.setColour(Colour.BLACK);
+    for(int i = 0; i < gui_txt.length; i++)
+      canvas.text(gui_txt[i], gui_pos[i]);
+  }
   
   @Override
   public EUpdateResult processMouseClick(IInput.MouseClick event)
   {
     // change the "paint" of the current brush
     if(event.state && event.button == IInput.EMouseButton.RIGHT)
-      brush.changeColour();
+      BRUSHES[brush_i].changeColour();
+    
+    return EUpdateResult.CONTINUE;
+  }
+  
+  @Override
+  public EUpdateResult processKeyPress(IInput.KeyPress event)
+  {
+    // default interactions
+    EUpdateResult result = super.processKeyPress(event);
+    if(result != EUpdateResult.CONTINUE)
+      return result;
+   
+    if(event.state)
+    {
+      switch(event.key)
+      {
+        case L_CTRL:
+        case R_CTRL:
+          // save on CONTROL
+          if(fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION)
+            level.save(fileChooser.getSelectedFile());
+        break;
+
+        case L_ALT:
+        case R_ALT:
+          // load on ALT
+          if(fileChooser.showOpenDialog(fileChooser) == JFileChooser.APPROVE_OPTION)
+            level.load(fileChooser.getSelectedFile());
+        break;
+          
+        case L_SHIFT:
+        case R_SHIFT:
+          // change brush on SHIFT
+          brush_i = (brush_i + 1)%BRUSHES.length;
+        break;
+      }
+    }
     
     return EUpdateResult.CONTINUE;
   }
@@ -56,9 +151,18 @@ public class EditorController extends LevelController
   @Override
   public EUpdateResult processInput(IInput input)
   {
+    // default input processing
+    EUpdateResult result = super.processInput(input);
+    if(result != EUpdateResult.CONTINUE)
+      return result;
+    
     // "paint" using the current brush
     if(input.isMouseClicking(IInput.EMouseButton.LEFT))
-      brush.paint(level.perspectiveToTile(input.getMousePosition()));
+    {
+      Tile target = level.perspectiveToTile(input.getMousePosition());
+      if(target != null)
+        BRUSHES[brush_i].paint(target);
+    }
 
     return EUpdateResult.CONTINUE;
   }

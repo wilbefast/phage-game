@@ -16,12 +16,18 @@
  */
 package wjd.phage.level;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import wjd.amb.AScene;
 import wjd.amb.control.EUpdateResult;
+import wjd.amb.view.ICamera;
 import wjd.amb.view.ICanvas;
 import wjd.math.V2;
 import wjd.phage.StrategyCamera;
@@ -32,10 +38,10 @@ import wjd.phage.play.PlayController;
  * @author wdyce
  * @since 05-Oct-2012
  */
-public class LevelScene extends AScene implements Serializable
+public class LevelScene extends AScene
 {
   /* CONSTANTS */
-  public static final V2 GRIDSIZE = new V2(100, 60);
+  public static final V2 GRIDSIZE = new V2(64, 64);
     
   /* NESTING */
   public static enum EMode
@@ -49,6 +55,7 @@ public class LevelScene extends AScene implements Serializable
   private StrategyCamera camera;
 
   /* METHODS */
+  
   // constructors
   public LevelScene(EMode mode)
   {
@@ -80,11 +87,71 @@ public class LevelScene extends AScene implements Serializable
   // mutators
   
   // accessors
+  
+  public ICamera getCamera()
+  {
+    return camera;
+  }
+  
+  public boolean validGridPos(V2 grid_pos)
+  {
+    return (grid_pos.x >= 0 && grid_pos.y >= 0 
+           && grid_pos.y < tilegrid.length && grid_pos.x < tilegrid[0].length);
+  }
+  
   public Tile perspectiveToTile(V2 perspective_pos)
   {
     V2 grid_pos = camera.getGlobal(perspective_pos).shrink(Tile.SIZE).floor();
-    return tilegrid[(int) grid_pos.y][(int) grid_pos.x];
+    return (validGridPos(grid_pos)
+              ? tilegrid[(int) grid_pos.y][(int) grid_pos.x]
+              : null);
   }
+  
+  // load and save
+  
+  public void load(File file)
+  {
+    try
+    {
+        Object o 
+          = (new ObjectInputStream(new FileInputStream(file))).readObject();
+        
+        if(o instanceof Tile[][])
+          this.tilegrid = (Tile[][])o;
+        else
+          throw new ClassNotFoundException();
+    }
+    catch (FileNotFoundException ex)
+    {
+      Logger.getLogger(LevelScene.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    catch (IOException ex)
+    {
+      Logger.getLogger(LevelScene.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    catch (ClassNotFoundException ex)
+    {
+      Logger.getLogger(LevelScene.class.getName()).log(Level.SEVERE, null, ex);
+    }
+  }
+  
+  public void save(File file)
+  {
+    try
+    {
+      // open specified file and write the object
+      (new ObjectOutputStream(new FileOutputStream(file))).writeObject(tilegrid);
+    }
+    catch (FileNotFoundException ex)
+    {
+      Logger.getLogger(LevelScene.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    catch (IOException ex)
+    {
+      Logger.getLogger(LevelScene.class.getName()).log(Level.SEVERE, null, ex);
+    }
+  }
+  
   /* IMPLEMENTS -- SCENE */
   
   @Override
@@ -97,35 +164,24 @@ public class LevelScene extends AScene implements Serializable
 
   @Override
   public void render(ICanvas canvas)
-  {
-    if (!canvas.isCameraActive())
-      canvas.setCamera(camera);
+  {    
 
     // clear the screen
     canvas.clear();
 
     // find out what cells the camera can see
+    canvas.setCamera(camera);
     camera.getVisibleGridCells(min, max, GRIDSIZE, Tile.ISIZE.x);
 
-    // draw each cell
+    // draw each cell relative to the camera
     for (int row = (int) Math.max(0, min.y);
          row < Math.min(tilegrid.length, max.y); row++)
       for (int col = (int) Math.max(0, min.x);
            col < Math.min(tilegrid[row].length, max.x); col++)
         tilegrid[row][col].render(canvas);
-  }
-
-  /* IMPLEMENTS -- SERIALIZABLE */
-
-  private void readObject(ObjectInputStream in) 
-    throws ClassNotFoundException, IOException
-  {
-    in.defaultReadObject();
-  }
-
-  private void writeObject(ObjectOutputStream out) 
-    throws IOException
-  {
-    out.defaultWriteObject();
+    
+    // draw the GUI overlay, not relative to the camera
+    canvas.setCamera(null);
+    ((LevelController)controller).render(canvas);
   }
 }

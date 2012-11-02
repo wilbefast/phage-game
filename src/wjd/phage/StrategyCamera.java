@@ -137,6 +137,7 @@ public class StrategyCamera implements ICamera
   @Override
   public void setProjectionArea(Rect projection_area)
   {
+    System.out.println("FIXME -- setProjectionArea");
   }
 
   @Override
