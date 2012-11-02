@@ -20,9 +20,10 @@ import wjd.amb.control.Controller;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IInput;
 import wjd.amb.control.IInput.KeyPress;
-import wjd.amb.model.AScene;
+import wjd.amb.AScene;
 import wjd.amb.view.ICanvas;
 import wjd.math.V2;
+import wjd.phage.editor.EditorController;
 import wjd.phage.level.LevelScene;
 
 /** 
@@ -51,7 +52,8 @@ public class TitleScene extends AScene
     {    
       if(event.key == IInput.EKeyCode.ENTER && event.state)
       {
-        title.setNext(new LevelScene());
+        
+        title.setNext(new LevelScene(LevelScene.EMode.EDITOR));
         return EUpdateResult.STOP;
       }
       else if(event.key == IInput.EKeyCode.ESC && event.state)

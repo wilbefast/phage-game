@@ -20,7 +20,6 @@ import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IInput;
 import wjd.phage.level.LevelController;
 import wjd.phage.level.LevelScene;
-import wjd.phage.level.Tile;
 
 /**
  *
@@ -38,22 +37,29 @@ public class EditorController extends LevelController
   public EditorController(LevelScene level)
   {
     super(level);
+    
+    brush = new TerrainBrush();
   }
-  
+
   /* OVERRIDES -- CONTROLLER */
+  
+  @Override
+  public EUpdateResult processMouseClick(IInput.MouseClick event)
+  {
+    // change the "paint" of the current brush
+    if(event.state && event.button == IInput.EMouseButton.RIGHT)
+      brush.changeColour();
+    
+    return EUpdateResult.CONTINUE;
+  }
   
   @Override
   public EUpdateResult processInput(IInput input)
   {
-    // change brush "colour"
-    brush.changeColour(input.getMouseWheelDelta());
-    
-    // "paint" or "erase" using the current brush
+    // "paint" using the current brush
     if(input.isMouseClicking(IInput.EMouseButton.LEFT))
-      brush.paint(level.perspectiveToTile(input.getMousePosition()), false);
-    else if(input.isMouseClicking(IInput.EMouseButton.RIGHT))
-      brush.paint(level.perspectiveToTile(input.getMousePosition()), true);
-    
+      brush.paint(level.perspectiveToTile(input.getMousePosition()));
+
     return EUpdateResult.CONTINUE;
   }
 }

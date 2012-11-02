@@ -16,7 +16,6 @@
  */
 package wjd.phage.level;
 
-import wjd.phage.level.Tile;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
@@ -58,6 +57,6 @@ public class Unit implements IVisible
     canvas.setColour(selected ? Colour.WHITE : Colour.BLACK);
     
     stamp_pos.reset(tile.getPosition()).scale(Tile.SIZE).add(Tile.HSIZE);
-    canvas.circle(stamp_pos, Tile.SIZE.x()/2);
+    canvas.circle(stamp_pos, Tile.SIZE.x/2);
   }
 }

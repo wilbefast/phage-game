@@ -28,13 +28,13 @@ public class UnitBrush implements IBrush
   /* IMPLEMENTS -- IBRUSH */
   
   @Override
-  public void paint(Tile target, boolean erase)
+  public void paint(Tile target)
   {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void changeColour(int delta)
+  public void changeColour()
   {
     throw new UnsupportedOperationException("Not supported yet.");
   }

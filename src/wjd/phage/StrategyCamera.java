@@ -72,12 +72,12 @@ public class StrategyCamera implements ICamera
                                   float cell_inv_size)
   {
     // top-left cell
-    min.xy((int)Math.max(0, view.x()*cell_inv_size)-1, /* col */
-          (int)Math.max(0, view.y()*cell_inv_size)-1); /* row */
+    min.xy((int)Math.max(0, view.x*cell_inv_size)-1, /* col */
+          (int)Math.max(0, view.y*cell_inv_size)-1); /* row */
     
     // bottom-right cell
-    max.xy((int)Math.min(grid_size.x(), view.endx()*cell_inv_size)+1, /* col */
-          (int)Math.min(grid_size.y(), view.endy()*cell_inv_size)+1); /* row */
+    max.xy((int)Math.min(grid_size.x, view.endx()*cell_inv_size)+1, /* col */
+          (int)Math.min(grid_size.y, view.endy()*cell_inv_size)+1); /* row */
   }
   
   /* IMPLEMENTATIONS -- ICAMERA */
@@ -92,7 +92,7 @@ public class StrategyCamera implements ICamera
   @Override
   public V2 getPerspective(V2 position)
   {
-    return new V2((position.x() - view.x()) * zoom, (position.y() - view.y()) * zoom);
+    return new V2((position.x - view.x) * zoom, (position.y - view.y) * zoom);
   }
 
   @Override
@@ -104,7 +104,7 @@ public class StrategyCamera implements ICamera
   @Override
   public V2 getGlobal(V2 position)
   {
-    return new V2(position.x() / zoom + view.x(), position.y() / zoom + view.y());
+    return new V2(position.x / zoom + view.x, position.y / zoom + view.y);
   }
   
   @Override
@@ -154,8 +154,8 @@ public class StrategyCamera implements ICamera
   public void zoom(float delta, V2 target)
   { 
     V2 target_true = getGlobal(target);
-    V2 target_relative = new V2(projection_size.x() / target.x(),
-                                projection_size.y() / target.y());
+    V2 target_relative = new V2(projection_size.x / target.x,
+                                projection_size.y / target.y);
 
     // reset zoom counter, don't zoom too much
     zoom += delta * zoom;
@@ -166,8 +166,8 @@ public class StrategyCamera implements ICamera
 
     // perform the zoom
     view.size(projection_size.clone().scale(1.0f / zoom));
-    view.x(target_true.x() - view.w() / target_relative.x());
-    view.y(target_true.y() - view.h() / target_relative.y());
+    view.x = target_true.x - view.w / target_relative.x;
+    view.y = target_true.y - view.h / target_relative.y;
     
     // don't stray out of bounds
     if (boundary != null)
@@ -197,30 +197,30 @@ public class StrategyCamera implements ICamera
     // pan view to keep within borders
 
     // pan view to keep within borders -- left/right
-    if (overlap.x() < 0)
+    if (overlap.x < 0)
     {
       // left
-      if (view.x() < boundary.x())
-        view.x(boundary.x());
+      if (view.x < boundary.x)
+        view.x = boundary.x;
       // right
       else if (view.endx() > boundary.endx())
-        view.x(boundary.endx() - view.w());
+        view.x = boundary.endx() - view.w;
     }
-    else if (overlap.x() > 0)
-      view.x(boundary.x() - overlap.x() * 0.5f);
+    else if (overlap.x > 0)
+      view.x = boundary.x - overlap.x * 0.5f;
 
     // pan view to keep within borders -- top/bottom
-    if (overlap.y() < 0)
+    if (overlap.y < 0)
     {
       // top
-      if (view.y() < boundary.y())
-        view.y(boundary.y());
+      if (view.y < boundary.y)
+        view.y = boundary.y;
       // bottom
       else if (view.endy() > boundary.endy())
-        view.y(boundary.endy() - view.h());
+        view.y = boundary.endy() - view.h;
     }
-    else if (overlap.y() > 0)
-      view.y(boundary.y() - overlap.y() * 0.5f);
+    else if (overlap.y > 0)
+      view.y = boundary.y - overlap.y * 0.5f;
   }
   
   private EUpdateResult processKeyboard(IInput input)
@@ -239,13 +239,13 @@ public class StrategyCamera implements ICamera
 
     // mouse near edges = pan
     /*V2 scroll_dir = new V2();
-    if (mouse_pos.x() < SCOLL_MOUSE_DISTANCE)
+    if (mouse_pos.x < SCOLL_MOUSE_DISTANCE)
       scroll_dir.x(-1);
-    else if (mouse_pos.x() > window_size.x() - SCOLL_MOUSE_DISTANCE)
+    else if (mouse_pos.x > window_size.x - SCOLL_MOUSE_DISTANCE)
       scroll_dir.x(1);
-    if (mouse_pos.y() < SCOLL_MOUSE_DISTANCE)
+    if (mouse_pos.y < SCOLL_MOUSE_DISTANCE)
       scroll_dir.y(-1);
-    else if (mouse_pos.y() > window_size.y() - SCOLL_MOUSE_DISTANCE)
+    else if (mouse_pos.y > window_size.y - SCOLL_MOUSE_DISTANCE)
       scroll_dir.y(1);
     pan(scroll_dir.scale(SCROLL_SPEED));*/
 

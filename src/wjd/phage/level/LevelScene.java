@@ -20,11 +20,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import wjd.amb.AScene;
 import wjd.amb.control.EUpdateResult;
-import wjd.amb.model.AScene;
 import wjd.amb.view.ICanvas;
 import wjd.math.V2;
 import wjd.phage.StrategyCamera;
+import wjd.phage.editor.EditorController;
 import wjd.phage.play.PlayController;
 
 /**
@@ -34,22 +35,36 @@ import wjd.phage.play.PlayController;
 public class LevelScene extends AScene implements Serializable
 {
   /* CONSTANTS */
-
   public static final V2 GRIDSIZE = new V2(100, 60);
-
+    
+  /* NESTING */
+  public static enum EMode
+  {
+    EDITOR,
+    PLAY
+  }
+  
   /* ATTRIBUTES */
   private Tile[][] tilegrid;
   private StrategyCamera camera;
 
   /* METHODS */
   // constructors
-  public LevelScene()
+  public LevelScene(EMode mode)
   {
     // control
-    setController(new PlayController(this));
+    switch(mode)
+    {
+      case EDITOR:
+        setController(new EditorController(this));
+        break;
+      case PLAY:
+        setController(new PlayController(this));
+        break;
+    }
 
     // model
-    tilegrid = new Tile[(int) GRIDSIZE.y()][(int) GRIDSIZE.x()];
+    tilegrid = new Tile[(int) GRIDSIZE.y][(int) GRIDSIZE.x];
     for (int row = 0; row < tilegrid.length; row++)
       for (int col = 0; col < tilegrid[row].length; col++)
         tilegrid[row][col] = new Tile(row, col, (Math.random() > 0.5)
@@ -68,7 +83,7 @@ public class LevelScene extends AScene implements Serializable
   public Tile perspectiveToTile(V2 perspective_pos)
   {
     V2 grid_pos = camera.getGlobal(perspective_pos).shrink(Tile.SIZE).floor();
-    return tilegrid[(int) grid_pos.y()][(int) grid_pos.x()];
+    return tilegrid[(int) grid_pos.y][(int) grid_pos.x];
   }
   /* IMPLEMENTS -- SCENE */
   
@@ -90,13 +105,13 @@ public class LevelScene extends AScene implements Serializable
     canvas.clear();
 
     // find out what cells the camera can see
-    camera.getVisibleGridCells(min, max, GRIDSIZE, Tile.ISIZE.x());
+    camera.getVisibleGridCells(min, max, GRIDSIZE, Tile.ISIZE.x);
 
     // draw each cell
-    for (int row = (int) Math.max(0, min.y());
-         row < Math.min(tilegrid.length, max.y()); row++)
-      for (int col = (int) Math.max(0, min.x());
-           col < Math.min(tilegrid[row].length, max.x()); col++)
+    for (int row = (int) Math.max(0, min.y);
+         row < Math.min(tilegrid.length, max.y); row++)
+      for (int col = (int) Math.max(0, min.x);
+           col < Math.min(tilegrid[row].length, max.x); col++)
         tilegrid[row][col].render(canvas);
   }
 

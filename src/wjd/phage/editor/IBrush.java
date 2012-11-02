@@ -26,8 +26,8 @@ import wjd.phage.level.Tile;
 public interface IBrush
 {
   /* INTERFACE */
-  public void paint(Tile target, boolean erase);
-  public void changeColour(int delta);
+  public void paint(Tile target);
+  public void changeColour();
 }
 
 

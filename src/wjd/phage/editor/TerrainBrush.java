@@ -26,7 +26,7 @@ import wjd.phage.level.Tile;
 public class TerrainBrush implements IBrush
 {
   /* ATTRIBUTES */
-  Tile.EType colour = Tile.EType.FLOOR;
+  private Tile.EType colour = Tile.EType.FLOOR;
 
   /* METHODS */
   
@@ -37,13 +37,13 @@ public class TerrainBrush implements IBrush
   
   /* IMPLEMENTS -- IBRUSH */
   @Override
-  public void paint(Tile target, boolean erase)
+  public void paint(Tile target)
   {
     target.setType(colour);
   }
 
   @Override
-  public void changeColour(int delta)
+  public void changeColour()
   {
     switch(colour)
     {
