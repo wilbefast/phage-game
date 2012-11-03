@@ -48,7 +48,7 @@ public class UnitBrush extends ABrush
   @Override
   public void render(ICanvas canvas)
   {
-    canvas.setColour(Colour.GREEN);
-    canvas.circle(position, 10.0f);
+    canvas.setColour(Colour.BLACK);
+    canvas.circle(position, 10.0f, !erase);
   }
 }

@@ -43,17 +43,19 @@ public class Tile implements IVisible, Serializable
   }
   
   /* ATTRIBUTES */
-  private V2 position;
+  public final V2 position;
   private EType type;
   private Unit unit = null;
+  public final Tile[][] tilegrid;
   
   /* METHODS */
 
   // constructors
-  public Tile(int row, int col, EType type)
+  public Tile(int row, int col, EType type, Tile[][] tilegrid)
   {
     position = new V2(col, row);
     this.type = type;
+    this.tilegrid = tilegrid;
   }
 
   // accessors
@@ -95,7 +97,7 @@ public class Tile implements IVisible, Serializable
     stamp_pos.reset(position).scale(SIZE);
     stamp_size.reset(SIZE).scale(canvas.getCamera().getZoom()+1);
     stamp.reset(stamp_pos, stamp_size);
-    canvas.box(stamp);
+    canvas.box(stamp, true);
     
     // draw tile -- unit (optional)
     if(unit != null)

@@ -81,11 +81,7 @@ public class LevelScene extends AScene
   // mutators
   
   // accessors
-  
-  public ICamera getCamera()
-  {
-    return camera;
-  }
+  public ICamera getCamera() { return camera; }
   
   public boolean validGridPos(V2 grid_pos)
   {
@@ -103,12 +99,12 @@ public class LevelScene extends AScene
   
   // clear, load and save
   
-  public void clear()
+  public final void clear()
   {
     // set all tiles as free
     for (int row = 0; row < tilegrid.length; row++)
       for (int col = 0; col < tilegrid[row].length; col++)
-        tilegrid[row][col] = new Tile(row, col, Tile.EType.FLOOR);
+        tilegrid[row][col] = new Tile(row, col, Tile.EType.FLOOR, tilegrid);
   }
   
   public void load(File file)

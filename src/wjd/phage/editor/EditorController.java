@@ -101,7 +101,7 @@ public class EditorController extends LevelController
   {
     // draw gui
     canvas.setColour(Colour.YELLOW);
-    canvas.box(GUI_BOX);
+    canvas.box(GUI_BOX, true);
     canvas.setColour(Colour.BLACK);
     for(int i = 0; i < gui_txt.length; i++)
       canvas.text(gui_txt[i], gui_pos[i]);
@@ -133,7 +133,7 @@ public class EditorController extends LevelController
    
     if(event.state)
     {
-      switch(event.key)
+      if(event.key != null) switch(event.key)
       {
         case L_CTRL:
         case R_CTRL:
@@ -161,6 +161,7 @@ public class EditorController extends LevelController
     return EUpdateResult.CONTINUE;
   }
   
+  private static V2 pos = new V2();
   @Override
   public EUpdateResult processInput(IInput input)
   {
@@ -171,6 +172,8 @@ public class EditorController extends LevelController
     
     // reset brush position
     BRUSHES[brush_i].setPosition(input.getMousePosition());
+    int brush_size = (int) (1/level.getCamera().getZoom()),
+        brush_hsize = brush_size/2;
     
     // "paint" using the current brush
     if(input.isMouseClicking(IInput.EMouseButton.LEFT))
@@ -178,7 +181,12 @@ public class EditorController extends LevelController
       Tile target = level.perspectiveToTile(input.getMousePosition());
       if(target != null && (previous_target == null || previous_target != target))
       {
-        BRUSHES[brush_i].paint(target);
+        for(pos.y = target.position.y-brush_hsize; 
+            pos.y < target.position.y+brush_hsize+1; pos.y++)
+        for(pos.x = target.position.x-brush_hsize; 
+            pos.x < target.position.x+brush_hsize+1; pos.x++)
+        if(level.validGridPos(pos))
+          BRUSHES[brush_i].paint(target.tilegrid[(int)pos.y][(int)pos.x]);
         previous_target = target;
       }
     }

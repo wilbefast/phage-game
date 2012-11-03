@@ -28,6 +28,10 @@ import wjd.phage.level.Tile;
  */
 public class TerrainBrush extends ABrush
 {
+  /* CONSTANTS */
+  private static final Colour FLOOR_COLOUR = new Colour(1.0f, 0.0f, 0.0f, 0.5f);
+  private static final Colour WALL_COLOUR = new Colour(0.0f, 0.0f, 1.0f, 0.5f);
+  
   /* ATTRIBUTES */
   private Tile.EType colour = Tile.EType.FLOOR;
 
@@ -70,13 +74,15 @@ public class TerrainBrush extends ABrush
     switch(colour)
     {
       case FLOOR:
-        canvas.setColour(Colour.VIOLET);
+        canvas.setColour(FLOOR_COLOUR);
       break;
 
       case WALL:
-        canvas.setColour(Colour.TEAL);
+        canvas.setColour(WALL_COLOUR);
       break;
     }
-    canvas.box(stamp);
+    canvas.box(stamp, true);
+    canvas.setColour(Colour.BLACK);
+    canvas.box(stamp, false);
   }
 }

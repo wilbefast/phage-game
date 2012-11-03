@@ -56,7 +56,7 @@ public class TitleScene extends AScene
     {    
       if(event.state)
       {
-        switch(event.key)
+        if(event.key != null) switch(event.key)
         {
           case L_SHIFT:
           case R_SHIFT:
