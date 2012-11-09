@@ -57,7 +57,7 @@ public class Unit implements IVisible, Serializable
   {
     canvas.setColour(selected ? Colour.WHITE : Colour.BLACK);
     
-    stamp_pos.reset(tile.getPosition()).scale(Tile.SIZE).add(Tile.HSIZE);
+    stamp_pos.reset(tile.position).scale(Tile.SIZE).add(Tile.HSIZE);
     canvas.circle(stamp_pos, Tile.SIZE.x/2, true);
   }
 }

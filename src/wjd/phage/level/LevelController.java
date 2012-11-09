@@ -16,6 +16,9 @@
  */
 package wjd.phage.level;
 
+import java.io.File;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
 import wjd.amb.control.Controller;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IInput;
@@ -29,6 +32,34 @@ import wjd.amb.view.IVisible;
  */
 public abstract class LevelController extends Controller implements IVisible
 {
+  /* CONSTANTS */
+  private static final JFileChooser fileChooser = new JFileChooser();
+  private static final FileFilter levelFilter = new FileFilter()
+  {
+    @Override
+    public boolean accept(File file)
+    {
+      // allow directories
+      if(file == null || file.isDirectory())
+        return true;
+      
+      String filename = file.getName(),
+             extension = filename.substring(filename.lastIndexOf('.')+1);
+      return (extension.equals("lvl"));
+    }
+
+    @Override
+    public String getDescription()
+    {
+      return "Game level (LVL) files";
+    }
+  };
+  static
+  {
+    fileChooser.setAcceptAllFileFilterUsed(false);
+    fileChooser.addChoosableFileFilter(levelFilter);
+  }
+  
   /* ATTRIBUTES */
   protected LevelScene level;
   
@@ -66,6 +97,28 @@ public abstract class LevelController extends Controller implements IVisible
     // exit on key press
     if(event.key == IInput.EKeyCode.ESC)
       return EUpdateResult.STOP;
+    
+        
+    // load and save
+    if(event.pressed)
+    {
+      if(event.key != null) switch(event.key)
+      {
+        case L_CTRL:
+        case R_CTRL:
+          // save on CONTROL
+          if(fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION)
+            level.save(fileChooser.getSelectedFile());
+        break;
+
+        case L_ALT:
+        case R_ALT:
+          // load on ALT
+          if(fileChooser.showOpenDialog(fileChooser) == JFileChooser.APPROVE_OPTION)
+            level.load(fileChooser.getSelectedFile());
+        break;
+      }
+    }
     
     // all clear
     return EUpdateResult.CONTINUE;

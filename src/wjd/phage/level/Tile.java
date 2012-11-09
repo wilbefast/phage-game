@@ -59,10 +59,6 @@ public class Tile implements IVisible, Serializable
   }
 
   // accessors
-  public V2 getPosition()
-  {
-    return position;
-  }
   
   public Unit getUnit()
   {

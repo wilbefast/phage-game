@@ -16,11 +16,10 @@
  */
 package wjd.phage.menus;
 
+import wjd.amb.AScene;
 import wjd.amb.control.Controller;
 import wjd.amb.control.EUpdateResult;
-import wjd.amb.control.IInput;
 import wjd.amb.control.IInput.KeyPress;
-import wjd.amb.AScene;
 import wjd.amb.view.ICanvas;
 import wjd.math.V2;
 import wjd.phage.level.LevelScene;
@@ -54,7 +53,7 @@ public class TitleScene extends AScene
     @Override
     public EUpdateResult processKeyPress(KeyPress event)
     {    
-      if(event.state)
+      if(event.pressed)
       {
         if(event.key != null) switch(event.key)
         {
@@ -100,6 +99,6 @@ public class TitleScene extends AScene
   public void render(ICanvas canvas)
   {
     canvas.clear();
-    canvas.text("Press SHIFT to edit, CTRL to play", HELLO_POS);
+    canvas.text("Press SHIFT to edit, ALT to play", HELLO_POS);
   }
 }

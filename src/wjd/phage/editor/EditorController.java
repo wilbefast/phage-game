@@ -37,27 +37,6 @@ import wjd.phage.level.Tile;
 public class EditorController extends LevelController
 {
   /* CONSTANTS */
-  private static final JFileChooser fileChooser = new JFileChooser();
-  private static final FileFilter levelFilter = new FileFilter()
-  {
-    @Override
-    public boolean accept(File file)
-    {
-      // allow directories
-      if(file == null || file.isDirectory())
-        return true;
-      
-      String filename = file.getName(),
-             extension = filename.substring(filename.lastIndexOf('.')+1);
-      return (extension.equals("lvl"));
-    }
-
-    @Override
-    public String getDescription()
-    {
-      return "Game level (LVL) files";
-    }
-  };
   private static final ABrush[] BRUSHES = 
   { 
     new TerrainBrush(), 
@@ -74,14 +53,7 @@ public class EditorController extends LevelController
   {
     new V2(32, 8), new V2(128, 8), new V2(224, 8)
   };
-  
-    
-  static
-  {
-    fileChooser.setAcceptAllFileFilterUsed(false);
-    fileChooser.addChoosableFileFilter(levelFilter);
-  }
- 
+
   /* ATTRIBUTES */
   private int brush_i = 0;
   private Tile previous_target = null;
@@ -114,7 +86,7 @@ public class EditorController extends LevelController
   public EUpdateResult processMouseClick(IInput.MouseClick event)
   {
     // change the "paint" of the current brush
-    if(event.state && event.button == IInput.EMouseButton.RIGHT)
+    if(event.pressed && event.button == IInput.EMouseButton.RIGHT)
     {
       BRUSHES[brush_i].changeColour();
       previous_target = null;
@@ -130,25 +102,12 @@ public class EditorController extends LevelController
     EUpdateResult result = super.processKeyPress(event);
     if(result != EUpdateResult.CONTINUE)
       return result;
-   
-    if(event.state)
+    
+    // change brush
+    if(event.pressed)
     {
       if(event.key != null) switch(event.key)
       {
-        case L_CTRL:
-        case R_CTRL:
-          // save on CONTROL
-          if(fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION)
-            level.save(fileChooser.getSelectedFile());
-        break;
-
-        case L_ALT:
-        case R_ALT:
-          // load on ALT
-          if(fileChooser.showOpenDialog(fileChooser) == JFileChooser.APPROVE_OPTION)
-            level.load(fileChooser.getSelectedFile());
-        break;
-          
         case L_SHIFT:
         case R_SHIFT:
           // change brush on SHIFT
@@ -157,7 +116,9 @@ public class EditorController extends LevelController
         break;
       }
     }
-    
+
+  
+    // all clear
     return EUpdateResult.CONTINUE;
   }
   

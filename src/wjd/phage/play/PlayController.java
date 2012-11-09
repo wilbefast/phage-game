@@ -16,13 +16,14 @@
  */
 package wjd.phage.play;
 
-import wjd.amb.control.Controller;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IInput;
+import wjd.amb.view.Colour;
+import wjd.amb.view.ICanvas;
+import wjd.math.Rect;
 import wjd.phage.level.LevelController;
 import wjd.phage.level.LevelScene;
 import wjd.phage.level.Tile;
-import wjd.phage.level.Unit;
 
 /**
  *
@@ -32,6 +33,8 @@ import wjd.phage.level.Unit;
 public class PlayController extends LevelController
 {
   /* ATTRIBUTES */
+  private Rect selection_box = new Rect(0,0,32,32);
+  private boolean selecting = false;
   
   /* METHODS */
 
@@ -44,8 +47,39 @@ public class PlayController extends LevelController
   /* OVERRIDES -- CONTROLLER */
   
   @Override
+  public EUpdateResult processInput(IInput input)
+  {
+    // stretch selection box
+    if(input.isMouseClicking(IInput.EMouseButton.LEFT))
+    {
+      selection_box.endpos(input.getMousePosition());
+    }
+    
+    // all clear
+    return EUpdateResult.CONTINUE;
+  }
+  
+  @Override
   public EUpdateResult processMouseClick(IInput.MouseClick event)
   {
+    Tile target = level.perspectiveToTile(event.input.getMousePosition());  
+    if(event.pressed)
+    {
+      selection_box.pos(event.input.getMousePosition());
+    }
+    
+    selection_box.h = selection_box.w = 0;
+    
+    // all clear
     return EUpdateResult.CONTINUE;
+  }
+  
+  
+  @Override
+  public void render(ICanvas canvas)
+  {
+    canvas.setLineWidth(2.0f);
+    canvas.setColour(Colour.TEAL);
+    canvas.box(selection_box, false);
   }
 }
