@@ -162,7 +162,7 @@ public class StrategyCamera implements ICamera
       zoom = ZOOM_MAX;
     else if (zoom < ZOOM_MIN)
       zoom = ZOOM_MIN;
-
+    
     // perform the zoom
     view.size(projection_size.clone().scale(1.0f / zoom));
     view.x = target_true.x - view.w / target_relative.x;

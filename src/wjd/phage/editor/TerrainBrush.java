@@ -70,7 +70,6 @@ public class TerrainBrush extends ABrush
   @Override
   public void render(ICanvas canvas)
   {
-    stamp.pos(position).unshift(Tile.HSIZE);
     switch(colour)
     {
       case FLOOR:
@@ -81,8 +80,9 @@ public class TerrainBrush extends ABrush
         canvas.setColour(WALL_COLOUR);
       break;
     }
-    canvas.box(stamp, true);
+    System.out.println("coverage="+coverage);
+    canvas.box(coverage, true);
     canvas.setColour(Colour.BLACK);
-    canvas.box(stamp, false);
+    canvas.box(coverage, false);
   }
 }

@@ -21,10 +21,10 @@ import wjd.amb.control.IInput;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.math.Rect;
-import wjd.math.V2;
 import wjd.phage.level.LevelController;
 import wjd.phage.level.LevelScene;
 import wjd.phage.level.Tile;
+import wjd.phage.level.Unit;
 
 /**
  *
@@ -65,22 +65,26 @@ public class PlayController extends LevelController
   @Override
   public EUpdateResult processMouseClick(IInput.MouseClick event)
   {
-    Tile target = level.perspectiveToTile(event.input.getMousePosition());  
     if(event.pressed)
       // pressed
       selection_box.pos(event.input.getMousePosition());
-    else
+    else 
     {
       // released
       Tile.Field selection 
-        = level.rectToCells(level.getCamera().getGlobal(selection_box));
+        = level.tilegrid.rectToCells(level.getCamera().getGlobal(selection_box));
       
-      /*for (int row = (int)selection.first.y; row < (int)selection.last.y; row++)
-      for (int col = (int)selection.first.x; col < (int)selection.last.x; col++)
-        level.*/
+      if(selection != null) for(Tile t : selection)
+      {
+        Unit u = t.getUnit();
+        if (u != null)
+          u.setSelected(true);
+      }
+      
+      selection_box.h = selection_box.w = 0;
     }
     
-    selection_box.h = selection_box.w = 0;
+    
     
     // all clear
     return EUpdateResult.CONTINUE;

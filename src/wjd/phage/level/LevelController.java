@@ -112,14 +112,14 @@ public abstract class LevelController extends Controller implements IVisible
         case R_CTRL:
           // save on CONTROL
           if(fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION)
-            level.save(fileChooser.getSelectedFile());
+            level.tilegrid.save(fileChooser.getSelectedFile());
         break;
 
         case L_ALT:
         case R_ALT:
           // load on ALT
           if(fileChooser.showOpenDialog(fileChooser) == JFileChooser.APPROVE_OPTION)
-            level.load(fileChooser.getSelectedFile());
+            level.tilegrid.load(fileChooser.getSelectedFile());
         break;
       }
     }

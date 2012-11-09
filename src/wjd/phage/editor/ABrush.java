@@ -17,8 +17,10 @@
 package wjd.phage.editor;
 
 import wjd.amb.view.IVisible;
+import wjd.math.Rect;
 import wjd.math.V2;
 import wjd.phage.level.Tile;
+import wjd.phage.level.TileGrid;
 
 /**
  *
@@ -28,12 +30,22 @@ import wjd.phage.level.Tile;
 public abstract class ABrush implements IVisible
 {
   /* ATTRIBUTES */
-  protected V2 position = new V2();
+  protected Rect coverage = new Rect();
   
   /* METHODS */
-  public void setPosition(V2 new_position)
+  public void setPosition(V2 position)
   {
-    position.reset(new_position);
+    coverage.centrePos(position);
+  }
+  public void setSize(float size)
+  {
+    coverage.reset(V2.ORIGIN, Tile.SIZE).scale(size);
+  }
+  public void paint(TileGrid grid)
+  {
+    Tile.Field target = grid.rectToCells(coverage);
+    for(Tile t : target)
+      paint(t);
   }
   
   /* INTERFACE */

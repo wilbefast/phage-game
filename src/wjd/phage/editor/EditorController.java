@@ -129,8 +129,18 @@ public class EditorController extends LevelController
     
     // reset brush position
     BRUSHES[brush_i].setPosition(input.getMousePosition());
-    int brush_size = (int) (1/level.getCamera().getZoom()),
+    
+    BRUSHES[brush_i].setSize(1/level.getCamera().getZoom());
+    
+    // "paint" using the current brush
+    if(input.isMouseClicking(IInput.EMouseButton.LEFT))
+      BRUSHES[brush_i].paint(level.tilegrid);
+    
+    /*int brush_size = (int) (1/level.getCamera().getZoom()),
         brush_hsize = brush_size/2;
+    
+    V2 pos = new V2();
+    
     
     // "paint" using the current brush
     if(input.isMouseClicking(IInput.EMouseButton.LEFT))
@@ -138,16 +148,15 @@ public class EditorController extends LevelController
       Tile target = level.perspectiveToTile(input.getMousePosition());
       if(target != null && (previous_target == null || previous_target != target))
       {
-        for(V2.cache[0].y = target.position.y-brush_hsize; 
-            V2.cache[0].y < target.position.y+brush_hsize+1; V2.cache[0].y++)
-        for(V2.cache[0].x = target.position.x-brush_hsize; 
-            V2.cache[0].x < target.position.x+brush_hsize+1; V2.cache[0].x++)
-        if(level.validGridPos(V2.cache[0]))
-          BRUSHES[brush_i].paint(target.tilegrid[(int)V2.cache[0].y]
-                                                [(int)V2.cache[0].x]);
+        for(pos.y = target.position.y-brush_hsize; 
+            pos.y < target.position.y+brush_hsize+1; pos.y++)
+        for(pos.x = target.position.x-brush_hsize; 
+            pos.x < target.position.x+brush_hsize+1; pos.x++)
+        if(level.tilegrid.validGridPos(pos))
+          BRUSHES[brush_i].paint(target.tilegrid[(int)pos.y][(int)pos.x]);
         previous_target = target;
       }
-    }
+    }*/
 
     return EUpdateResult.CONTINUE;
   }

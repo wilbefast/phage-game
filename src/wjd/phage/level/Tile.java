@@ -32,11 +32,14 @@ import wjd.math.V2;
 public class Tile implements IVisible, Serializable
 {
   /* CONSTANTS */
-
   public static final V2 SIZE = new V2(32, 32);
   public static final V2 HSIZE = SIZE.clone().scale(0.5f);
   public static final V2 ISIZE = SIZE.clone().inv();
 
+  /* GLOBAL */
+  private static V2 stamp_pos = new V2(), stamp_size = new V2();
+  private static Rect stamp = new Rect();
+  
   /* NESTING */
   public static enum EType
   {
@@ -68,16 +71,18 @@ public class Tile implements IVisible, Serializable
     @Override
     public boolean hasNext()
     {
-      return (!((int)current.position.y == max_row
-              && (int)current.position.x == max_col));
+      return (current != null);
     }
 
     @Override
     public Tile next()
     {
       Tile previous = current;
+
       current = ((int)current.position.x == max_col
-        ? current.tilegrid[(int)current.position.y+1][0]
+        ? (((int)current.position.y == max_row) 
+              ? null 
+              : current.tilegrid[(int)current.position.y+1][0]) 
         : current.tilegrid[(int)current.position.y][(int)current.position.x+1]);
 
       return previous;
@@ -166,10 +171,10 @@ public class Tile implements IVisible, Serializable
     canvas.setColour(type == EType.FLOOR ? Colour.RED : Colour.BLUE);
 
     // draw tile -- background
-    V2.cache[0].reset(position).scale(SIZE);
-    V2.cache[1].reset(SIZE).scale(canvas.getCamera().getZoom() + 1);
-    Rect.cache[0].reset(V2.cache[0], V2.cache[1]);
-    canvas.box(Rect.cache[0], true);
+    stamp_pos.reset(position).scale(SIZE);
+    stamp_size.reset(SIZE).scale(canvas.getCamera().getZoom() + 1);
+    stamp.reset(stamp_pos, stamp_size);
+    canvas.box(stamp, true);
 
     // draw tile -- unit (optional)
     if (unit != null)
