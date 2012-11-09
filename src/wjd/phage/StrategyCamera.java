@@ -60,27 +60,25 @@ public class StrategyCamera implements ICamera
     this.boundary = boundary;
   }
   
-    /** Which cells of the specified grid are in view?
-   * 
-   * @param min a vector reference wherein will be written the coordinates of 
-   * the minimum grid cell.
-   * @param max a vector reference wherein will be written the coordinates of 
-   * the maximum grid cell. 
-   * @param cell_size the size of each square cell.
-   */
-  public void getVisibleGridCells(V2 min, V2 max, V2 grid_size, 
+
+  /*public void getVisibleGridCells(V2 min, V2 max, V2 grid_size, 
                                   float cell_inv_size)
   {
     // top-left cell
-    min.xy((int)Math.max(0, view.x*cell_inv_size)-1, /* col */
-          (int)Math.max(0, view.y*cell_inv_size)-1); /* row */
+    min.xy((int)Math.max(0, view.x*cell_inv_size)-1, 
+          (int)Math.max(0, view.y*cell_inv_size)-1);
     
     // bottom-right cell
-    max.xy((int)Math.min(grid_size.x, view.endx()*cell_inv_size)+1, /* col */
-          (int)Math.min(grid_size.y, view.endy()*cell_inv_size)+1); /* row */
-  }
+    max.xy((int)Math.min(grid_size.x, view.endx()*cell_inv_size)+1,
+          (int)Math.min(grid_size.y, view.endy()*cell_inv_size)+1);
+  }*/
   
   /* IMPLEMENTATIONS -- ICAMERA */
+  
+  public Rect getView()
+  {
+    return view;
+  }
 
   // query
   @Override
@@ -258,5 +256,4 @@ public class StrategyCamera implements ICamera
     // keep on keeping on :)
     return EUpdateResult.CONTINUE;
   }
-  
 }

@@ -21,6 +21,7 @@ import wjd.amb.control.IInput;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.math.Rect;
+import wjd.math.V2;
 import wjd.phage.level.LevelController;
 import wjd.phage.level.LevelScene;
 import wjd.phage.level.Tile;
@@ -33,8 +34,7 @@ import wjd.phage.level.Tile;
 public class PlayController extends LevelController
 {
   /* ATTRIBUTES */
-  private Rect selection_box = new Rect(0,0,32,32);
-  private boolean selecting = false;
+  private Rect selection_box = new Rect();
   
   /* METHODS */
 
@@ -49,11 +49,14 @@ public class PlayController extends LevelController
   @Override
   public EUpdateResult processInput(IInput input)
   {
+    // default input processing
+    EUpdateResult result = super.processInput(input);
+    if(result != EUpdateResult.CONTINUE)
+      return result;
+    
     // stretch selection box
     if(input.isMouseClicking(IInput.EMouseButton.LEFT))
-    {
       selection_box.endpos(input.getMousePosition());
-    }
     
     // all clear
     return EUpdateResult.CONTINUE;
@@ -64,8 +67,17 @@ public class PlayController extends LevelController
   {
     Tile target = level.perspectiveToTile(event.input.getMousePosition());  
     if(event.pressed)
-    {
+      // pressed
       selection_box.pos(event.input.getMousePosition());
+    else
+    {
+      // released
+      Tile.Field selection 
+        = level.rectToCells(level.getCamera().getGlobal(selection_box));
+      
+      /*for (int row = (int)selection.first.y; row < (int)selection.last.y; row++)
+      for (int col = (int)selection.first.x; col < (int)selection.last.x; col++)
+        level.*/
     }
     
     selection_box.h = selection_box.w = 0;

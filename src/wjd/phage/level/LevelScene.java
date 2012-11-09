@@ -29,6 +29,7 @@ import wjd.amb.AScene;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.view.ICamera;
 import wjd.amb.view.ICanvas;
+import wjd.math.Rect;
 import wjd.math.V2;
 import wjd.phage.StrategyCamera;
 import wjd.phage.editor.EditorController;
@@ -81,7 +82,31 @@ public class LevelScene extends AScene
   // mutators
   
   // accessors
+  
   public ICamera getCamera() { return camera; }
+  
+  /** Which cells of the grid are inside the rectangle?
+   * 
+   * @param rect the rectangle which we want to draw cells from.
+   * @return a Tile.Field structure containing a pair of 
+   * coordinates corresponding to the top-left- and bottom-right-most cells in
+   * the grid.
+   */
+  public Tile.Field rectToCells(Rect rect)
+  {
+    // top-left cell
+    V2.cache[0].xy((int)Math.max(0, rect.x*Tile.ISIZE.x-1),
+                                 (int)Math.max(0, rect.y*Tile.ISIZE.y-1));
+    
+    // bottom-right cell
+    V2.cache[1].xy((int)Math.min(GRIDSIZE.x-1, rect.endx()*Tile.ISIZE.x+1),
+                              (int)Math.min(GRIDSIZE.y-1, rect.endy()*Tile.ISIZE.y+1));
+    
+    // save the references in the pre-allocated cache, then return them
+    Tile.Field.cache[0].reset(tilegrid[(int)V2.cache[0].y][(int)V2.cache[0].x], 
+                              tilegrid[(int)V2.cache[1].y][(int)V2.cache[1].x]);
+    return Tile.Field.cache[0];
+  }
   
   public boolean validGridPos(V2 grid_pos)
   {
@@ -158,27 +183,26 @@ public class LevelScene extends AScene
     // stay in this Scene if nothing interesting has happened
     return EUpdateResult.CONTINUE;
   }
-  private static V2 min = new V2(), max = new V2();
-
+  
   @Override
   public void render(ICanvas canvas)
   {    
-
     // clear the screen
     canvas.clear();
 
     // find out what cells the camera can see
     canvas.setCamera(camera);
-    camera.getVisibleGridCells(min, max, GRIDSIZE, Tile.ISIZE.x);
+    Tile.Field visible = rectToCells(camera.getView());
 
+    /* TODO!!  */
     // draw each cell relative to the camera
-    for (int row = (int) Math.max(0, min.y);
-         row < Math.min(tilegrid.length, max.y); row++)
-      for (int col = (int) Math.max(0, min.x);
-           col < Math.min(tilegrid[row].length, max.x); col++)
-        tilegrid[row][col].render(canvas);
+    for(Tile t : visible)
+      t.render(canvas);
+    /*for (int row = (int)visible.first.position.y; row < (int)visible.last.position.y; row++)
+    for (int col = (int)visible.first.position.x; col < (int)visible.last.position.x; col++)
+      tilegrid[row][col].render(canvas);*/
     
-    // draw the GUI overlay, not relative to the camera
+    // turn off camera to draw the GUI overlay
     canvas.setCamera(null);
     ((LevelController)controller).render(canvas);
   }

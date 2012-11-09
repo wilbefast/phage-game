@@ -24,6 +24,7 @@ import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IInput;
 import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
+import wjd.phage.menus.TitleScene;
 
 /**
  *
@@ -94,9 +95,12 @@ public abstract class LevelController extends Controller implements IVisible
   @Override
   public EUpdateResult processKeyPress(IInput.KeyPress event)
   {
-    // exit on key press
+    // go back to title on ESC press
     if(event.key == IInput.EKeyCode.ESC)
+    {
+      level.setNext(new TitleScene());
       return EUpdateResult.STOP;
+    }
     
         
     // load and save

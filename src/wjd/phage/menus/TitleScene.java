@@ -20,6 +20,7 @@ import wjd.amb.AScene;
 import wjd.amb.control.Controller;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IInput.KeyPress;
+import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.math.V2;
 import wjd.phage.level.LevelScene;
@@ -99,6 +100,7 @@ public class TitleScene extends AScene
   public void render(ICanvas canvas)
   {
     canvas.clear();
+    canvas.setColour(Colour.BLACK);
     canvas.text("Press SHIFT to edit, ALT to play", HELLO_POS);
   }
 }

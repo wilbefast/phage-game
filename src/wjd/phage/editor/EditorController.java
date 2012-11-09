@@ -16,9 +16,6 @@
  */
 package wjd.phage.editor;
 
-import java.io.File;
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IInput;
 import wjd.amb.view.Colour;
@@ -122,7 +119,6 @@ public class EditorController extends LevelController
     return EUpdateResult.CONTINUE;
   }
   
-  private static V2 pos = new V2();
   @Override
   public EUpdateResult processInput(IInput input)
   {
@@ -142,12 +138,13 @@ public class EditorController extends LevelController
       Tile target = level.perspectiveToTile(input.getMousePosition());
       if(target != null && (previous_target == null || previous_target != target))
       {
-        for(pos.y = target.position.y-brush_hsize; 
-            pos.y < target.position.y+brush_hsize+1; pos.y++)
-        for(pos.x = target.position.x-brush_hsize; 
-            pos.x < target.position.x+brush_hsize+1; pos.x++)
-        if(level.validGridPos(pos))
-          BRUSHES[brush_i].paint(target.tilegrid[(int)pos.y][(int)pos.x]);
+        for(V2.cache[0].y = target.position.y-brush_hsize; 
+            V2.cache[0].y < target.position.y+brush_hsize+1; V2.cache[0].y++)
+        for(V2.cache[0].x = target.position.x-brush_hsize; 
+            V2.cache[0].x < target.position.x+brush_hsize+1; V2.cache[0].x++)
+        if(level.validGridPos(V2.cache[0]))
+          BRUSHES[brush_i].paint(target.tilegrid[(int)V2.cache[0].y]
+                                                [(int)V2.cache[0].x]);
         previous_target = target;
       }
     }
