@@ -80,7 +80,6 @@ public class TerrainBrush extends ABrush
         canvas.setColour(WALL_COLOUR);
       break;
     }
-    System.out.println("coverage="+coverage);
     canvas.box(coverage, true);
     canvas.setColour(Colour.BLACK);
     canvas.box(coverage, false);

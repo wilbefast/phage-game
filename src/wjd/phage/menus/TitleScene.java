@@ -17,7 +17,6 @@
 package wjd.phage.menus;
 
 import wjd.amb.AScene;
-import wjd.amb.control.Controller;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IInput.KeyPress;
 import wjd.amb.view.Colour;
@@ -34,61 +33,14 @@ public class TitleScene extends AScene
   /* CONSTANTS */
   private static final V2 HELLO_POS = new V2(100, 100);
   
-  /* NESTING */
-  private static class TitleController extends Controller
-  {
-    // attributes
-    private TitleScene title;
-    
-    // methods
-    TitleController(TitleScene title)
-    {
-      this.title = title;
-    }
-    // overrides
-    public void render(ICanvas canvas)
-    {
-      
-    }
-    // implementations
-    @Override
-    public EUpdateResult processKeyPress(KeyPress event)
-    {    
-      if(event.pressed)
-      {
-        if(event.key != null) switch(event.key)
-        {
-          case L_SHIFT:
-          case R_SHIFT:
-            // SHIFT to edit
-            title.setNext(new LevelScene(LevelScene.EMode.EDITOR));
-            return EUpdateResult.STOP;
-            
-          case L_ALT:
-          case R_ALT:
-            // ALT to play
-            title.setNext(new LevelScene(LevelScene.EMode.PLAY));
-            return EUpdateResult.STOP;
-            
-          case ESC:
-            return EUpdateResult.STOP;
-        }
-      }
-
-      // all clear
-      return EUpdateResult.CONTINUE;
-    }
-  }
-  
   /* METHODS */
   
   // constructors
   public TitleScene()
   {
-    setController(new TitleController(this));
   }
   
-  /* IMPLEMENTATIONS -- SCENE */
+  /* IMPLEMENTS -- IDYNAMIC */
 
   @Override
   public EUpdateResult update(int t_delta)
@@ -96,11 +48,42 @@ public class TitleScene extends AScene
     return EUpdateResult.CONTINUE;
   }
 
+  /* IMPLEMENTS -- IVISIBLE */
+  
   @Override
   public void render(ICanvas canvas)
   {
     canvas.clear();
     canvas.setColour(Colour.BLACK);
     canvas.text("Press SHIFT to edit, ALT to play", HELLO_POS);
+  }
+  
+  /* IMPLEMENTS -- ICONTROLLER */
+  @Override
+  public EUpdateResult processKeyPress(KeyPress event)
+  {    
+    if(event.pressed)
+    {
+      if(event.key != null) switch(event.key)
+      {
+        case L_SHIFT:
+        case R_SHIFT:
+          // SHIFT to edit
+          setNext(new LevelScene(LevelScene.EMode.EDITOR));
+          return EUpdateResult.STOP;
+
+        case L_ALT:
+        case R_ALT:
+          // ALT to play
+          setNext(new LevelScene(LevelScene.EMode.PLAY));
+          return EUpdateResult.STOP;
+
+        case ESC:
+          return EUpdateResult.STOP;
+      }
+    }
+
+    // all clear
+    return EUpdateResult.CONTINUE;
   }
 }

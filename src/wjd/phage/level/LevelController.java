@@ -19,8 +19,8 @@ package wjd.phage.level;
 import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
-import wjd.amb.control.Controller;
 import wjd.amb.control.EUpdateResult;
+import wjd.amb.control.IController;
 import wjd.amb.control.IInput;
 import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
@@ -31,7 +31,7 @@ import wjd.phage.menus.TitleScene;
  * @author wdyce
  * @since Nov 2, 2012
  */
-public abstract class LevelController extends Controller implements IVisible
+public abstract class LevelController implements IController, IVisible
 {
   /* CONSTANTS */
   private static final JFileChooser fileChooser = new JFileChooser();

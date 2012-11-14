@@ -16,7 +16,6 @@
  */
 package wjd.phage.level;
 
-import java.io.File;
 import wjd.amb.AScene;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.view.ICamera;

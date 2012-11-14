@@ -28,6 +28,6 @@ public abstract class Main
 {
   public static void main(String args[])
   {
-    AmbitionEngine.launch("Phage", new V2(640, 480), new TitleScene());
+    AmbitionEngine.launch("Phage", new V2(640, 480), new TitleScene(), null);
   }
 }

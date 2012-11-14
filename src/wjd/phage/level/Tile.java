@@ -35,10 +35,6 @@ public class Tile implements IVisible, Serializable
   public static final V2 SIZE = new V2(32, 32);
   public static final V2 HSIZE = SIZE.clone().scale(0.5f);
   public static final V2 ISIZE = SIZE.clone().inv();
-
-  /* GLOBAL */
-  private static V2 stamp_pos = new V2(), stamp_size = new V2();
-  private static Rect stamp = new Rect();
   
   /* NESTING */
   public static enum EType
@@ -59,9 +55,9 @@ public class Tile implements IVisible, Serializable
     {
       this.current = current;
       max_col 
-        = (int)((max == null) ? current.tilegrid[0].length-1 : max.position.x);
+        = (int)((max == null) ? current.tilegrid[0].length-1 : max.grid_position.x);
       max_row 
-        = (int)((max == null) ? current.tilegrid.length-1 : max.position.y);
+        = (int)((max == null) ? current.tilegrid.length-1 : max.grid_position.y);
     }
     public RowByRow(Tile _current)
     {
@@ -79,11 +75,11 @@ public class Tile implements IVisible, Serializable
     {
       Tile previous = current;
 
-      current = ((int)current.position.x == max_col
-        ? (((int)current.position.y == max_row) 
+      current = ((int)current.grid_position.x == max_col
+        ? (((int)current.grid_position.y == max_row) 
               ? null 
-              : current.tilegrid[(int)current.position.y+1][0]) 
-        : current.tilegrid[(int)current.position.y][(int)current.position.x+1]);
+              : current.tilegrid[(int)current.grid_position.y+1][0]) 
+        : current.tilegrid[(int)current.grid_position.y][(int)current.grid_position.x+1]);
 
       return previous;
     }
@@ -97,10 +93,7 @@ public class Tile implements IVisible, Serializable
   }
   
   public static class Field implements Iterable<Tile>
-  {
-    // global
-    public static Field cache[] = { new Field(null, null) };
-    
+  { 
     // attributes
     public Tile first, last;
     
@@ -132,7 +125,8 @@ public class Tile implements IVisible, Serializable
     }
   }
   /* ATTRIBUTES */
-  public final V2 position; // (col, row)
+  public final V2 grid_position; // (col, row)
+  private final Rect pixel_area;
   private EType type;
   private Unit unit = null;
   public final Tile[][] tilegrid;
@@ -141,7 +135,8 @@ public class Tile implements IVisible, Serializable
   // constructors
   public Tile(int row, int col, EType type, Tile[][] tilegrid)
   {
-    position = new V2(col, row);
+    grid_position = new V2(col, row);
+    pixel_area = new Rect(grid_position.clone().scale(SIZE), SIZE);
     this.type = type;
     this.tilegrid = tilegrid;
   }
@@ -171,11 +166,10 @@ public class Tile implements IVisible, Serializable
     canvas.setColour(type == EType.FLOOR ? Colour.RED : Colour.BLUE);
 
     // draw tile -- background
-    stamp_pos.reset(position).scale(SIZE);
-    stamp_size.reset(SIZE).scale(canvas.getCamera().getZoom() + 1);
-    stamp.reset(stamp_pos, stamp_size);
-    canvas.box(stamp, true);
-
+    canvas.box(pixel_area, true);
+    canvas.setColour(Colour.BLACK);
+    canvas.box(pixel_area, false);
+    
     // draw tile -- unit (optional)
     if (unit != null)
       unit.render(canvas);
@@ -185,6 +179,6 @@ public class Tile implements IVisible, Serializable
   @Override
   public String toString()
   {
-    return type + " at " + position + (unit == null ? "" : " contains " + unit);
+    return type + " at " + grid_position + (unit == null ? "" : " contains " + unit);
   }
 }
