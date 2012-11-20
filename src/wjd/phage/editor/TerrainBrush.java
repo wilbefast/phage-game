@@ -66,7 +66,6 @@ public class TerrainBrush extends ABrush
   
   /* IMPLEMENTS -- IVISIBLE */
 
-  private static Rect stamp = new Rect(Tile.SIZE);
   @Override
   public void render(ICanvas canvas)
   {
@@ -80,6 +79,7 @@ public class TerrainBrush extends ABrush
         canvas.setColour(WALL_COLOUR);
       break;
     }
+    
     canvas.box(coverage, true);
     canvas.setColour(Colour.BLACK);
     canvas.box(coverage, false);

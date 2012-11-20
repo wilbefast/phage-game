@@ -39,13 +39,13 @@ public abstract class ABrush implements IVisible
   }
   public void setSize(float size)
   {
-    coverage.reset(V2.ORIGIN, Tile.SIZE).scale(size);
+    coverage.size(Tile.SIZE).scale(size);
   }
   public void paint(TileGrid grid)
   {
-    Tile.Field target = grid.rectToCells(coverage);
-    for(Tile t : target)
-      paint(t);
+    TileGrid target_field = grid.createSubGrid(coverage);
+    for(Tile target : target_field)
+      paint(target);
   }
   
   /* INTERFACE */

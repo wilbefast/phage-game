@@ -24,6 +24,7 @@ import wjd.math.Rect;
 import wjd.phage.level.LevelController;
 import wjd.phage.level.LevelScene;
 import wjd.phage.level.Tile;
+import wjd.phage.level.TileGrid;
 import wjd.phage.level.Unit;
 
 /**
@@ -71,8 +72,8 @@ public class PlayController extends LevelController
     else 
     {
       // released
-      Tile.Field selection 
-        = level.tilegrid.rectToCells(level.getCamera().getGlobal(selection_box));
+      TileGrid selection 
+        = level.tilegrid.createSubGrid(level.getCamera().getGlobal(selection_box));
       
       if(selection != null) for(Tile t : selection)
       {

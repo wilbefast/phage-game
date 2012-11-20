@@ -100,7 +100,7 @@ public class LevelScene extends AScene
 
     // find out what cells the camera can see
     canvas.setCamera(camera);
-    Tile.Field visible = tilegrid.rectToCells(camera.getView());
+    TileGrid visible = tilegrid.createSubGrid(camera.getView());
 
     // draw each cell relative to the camera
     if(visible != null) for(Tile t : visible)

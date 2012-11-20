@@ -128,35 +128,13 @@ public class EditorController extends LevelController
       return result;
     
     // reset brush position
-    BRUSHES[brush_i].setPosition(input.getMousePosition());
-    
-    BRUSHES[brush_i].setSize(1/level.getCamera().getZoom());
-    
-    // "paint" using the current brush
-    if(input.isMouseClicking(IInput.EMouseButton.LEFT))
-      BRUSHES[brush_i].paint(level.tilegrid);
-    
-    /*int brush_size = (int) (1/level.getCamera().getZoom()),
-        brush_hsize = brush_size/2;
-    
-    V2 pos = new V2();
-    
+    BRUSHES[brush_i].setSize(1/level.getCamera().getZoom()); // size first!
+    BRUSHES[brush_i].setPosition(level.getCamera().getGlobal(input.getMousePosition()));
+
     
     // "paint" using the current brush
     if(input.isMouseClicking(IInput.EMouseButton.LEFT))
-    {
-      Tile target = level.perspectiveToTile(input.getMousePosition());
-      if(target != null && (previous_target == null || previous_target != target))
-      {
-        for(pos.y = target.position.y-brush_hsize; 
-            pos.y < target.position.y+brush_hsize+1; pos.y++)
-        for(pos.x = target.position.x-brush_hsize; 
-            pos.x < target.position.x+brush_hsize+1; pos.x++)
-        if(level.tilegrid.validGridPos(pos))
-          BRUSHES[brush_i].paint(target.tilegrid[(int)pos.y][(int)pos.x]);
-        previous_target = target;
-      }
-    }*/
+        BRUSHES[brush_i].paint(level.tilegrid);
 
     return EUpdateResult.CONTINUE;
   }

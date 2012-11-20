@@ -89,7 +89,6 @@ public class Tile implements IVisible, Serializable
     {
       // do nothing
     }
-    
   }
   
   public static class Field implements Iterable<Tile>
