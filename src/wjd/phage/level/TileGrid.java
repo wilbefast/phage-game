@@ -37,89 +37,106 @@ import wjd.math.V2;
 public class TileGrid implements Iterable<Tile>
 {
   /* ATTRIBUTES */
-  
+
   public Tile[][] tiles;
   private final Rect grid_area;
-  private final Rect pixel_area;
-  
+
   /* METHODS */
-
+  
   // constructors
-  public TileGrid(V2 size)
-  {
-    grid_area = new Rect(V2.ORIGIN, size).floor();
-    pixel_area = grid_area.clone().stretch(Tile.SIZE).floor();
-    tiles = new Tile[(int)size.y][(int)size.x];
-  }
-
-  private TileGrid(Tile[][] tiles, Rect pixel_area)
+  private TileGrid(Tile[][] tiles, Rect grid_area)
   {
     this.tiles = tiles;
-    Rect max_grid_area = new Rect(0, 0, tiles[0].length-1, tiles.length-1);
-    this.grid_area = 
-      pixel_area.clone().div(Tile.SIZE).getIntersection(max_grid_area);
-    this.pixel_area = grid_area.clone().stretch(Tile.SIZE).floor();
+    this.grid_area = grid_area;
   }
   
+  public TileGrid(V2 size)
+  {
+    this(new Tile[(int)size.y][(int)size.x], 
+         new Rect(V2.ORIGIN, size.clone().dinc()).floor());
+  }
+
   // mutators
-  
   /**
    * Set all the tiles in the grid to be free.
    */
   public TileGrid clear()
   {
     // set all tiles as free
-    for (int row = (int)grid_area.y; row < (int)(grid_area.y+grid_area.h); row++)
-      for (int col = (int)grid_area.x; col < (int)(grid_area.x+grid_area.w); col++)
+    for (int row = (int) grid_area.y; row <= (int)(grid_area.endy()); row++)
+      for (int col = (int) grid_area.x; col <= (int) (grid_area.endx()); col++)
         tiles[row][col] = new Tile(row, col, Tile.EType.FLOOR, tiles);
     return this;
   }
-    
+
   // accessors
-  /** Which cells of the grid are inside the rectangle?
-   * 
+  /**
+   * Grab the Tile at the specified position.
+   *
+   * @param pixel_pos the vector pixel-position (x, y) of the desired Tile,
+   * not to the confused with the (col, row) grid-position.
+   * @return the Tile at the specified position or null if there position is
+   * invalid (outside of the grid).
+   */
+  public Tile getTile(V2 pixel_pos)
+  {
+    V2 grid_pos = pixel_pos.clone().scale(Tile.ISIZE).floor();
+    return (validGridPos(grid_pos) 
+            ? tiles[(int)grid_pos.y][(int)grid_pos.x] 
+            : null);
+  }
+
+  /**
+   * Which cells of the grid are inside the rectangle?
+   *
    * @param sub_area the rectangle which we want to draw cells from.
-   * @return a Tile.Field structure containing a pair of 
-   * coordinates corresponding to the top-left- and bottom-right-most cells in
-   * the grid.
+   * @return a Tile.Field structure containing a pair of coordinates
+   * corresponding to the top-left- and bottom-right-most cells in the grid.
    */
   public TileGrid createSubGrid(Rect sub_area)
   {
-    // build and return the field
-    return new TileGrid(tiles, sub_area.getIntersection(pixel_area));
+    // build the sub-field
+    int min_col = (int)(sub_area.x * Tile.ISIZE.x),
+        min_row = (int)(sub_area.y * Tile.ISIZE.y),
+        max_col = (int)(sub_area.endx() * Tile.ISIZE.x),
+        max_row = (int)(sub_area.endy() * Tile.ISIZE.y);
+    Rect sub_grid_area 
+      = new Rect(min_col, min_row, max_col-min_col, max_row-min_row);
+    
+    // constrain
+    sub_grid_area = sub_grid_area.getIntersection(grid_area);
+    return (sub_grid_area == null) ? null : new TileGrid(tiles, sub_grid_area);
   }
-  
+
   public TileGrid getAdjascent(Tile tile)
   {
-    return createSubGrid(new Rect(tile.grid_position, new V2(3.0f, 3.0f)));
+    return createSubGrid(new Rect(tile.grid_position, new V2(3, 3)));
   }
-  
-  /** 
+
+  /**
    * Check if a position is on the grid.
-   * 
+   *
    * @param grid_pos the vector pair of coordinates (col, row) to check.
    * @return true is the given pair of coordinates is inside the grid, false if
    * not.
    */
   public boolean validGridPos(V2 grid_pos)
   {
-    return (grid_pos.x >= 0 && grid_pos.y >= 0 
-           && grid_pos.y < tiles.length && grid_pos.x < tiles[0].length);
+    return (grid_pos.x >= 0 && grid_pos.y >= 0
+            && grid_pos.y < tiles.length && grid_pos.x < tiles[0].length);
   }
-  
+
   // load and save
-  
   public TileGrid load(File file)
   {
     try
     {
-        Object o 
-          = (new ObjectInputStream(new FileInputStream(file))).readObject();
-        
-        if(o instanceof Tile[][])
-          this.tiles = (Tile[][])o;
-        else
-          throw new ClassNotFoundException();
+      Object o = (new ObjectInputStream(new FileInputStream(file))).readObject();
+
+      if (o instanceof Tile[][])
+        this.tiles = (Tile[][]) o;
+      else
+        throw new ClassNotFoundException();
     }
     catch (FileNotFoundException ex)
     {
@@ -138,7 +155,7 @@ public class TileGrid implements Iterable<Tile>
       return this;
     }
   }
-  
+
   public TileGrid save(File file)
   {
     try
@@ -159,9 +176,8 @@ public class TileGrid implements Iterable<Tile>
       return this;
     }
   }
-  
+
   /* OVERRIDES -- OBJECT */
-  
   @Override
   public String toString()
   {
@@ -169,24 +185,22 @@ public class TileGrid implements Iterable<Tile>
   }
 
   /* IMPLEMENTS -- ITERABLE */
-  
   public static class RowByRow implements Iterator<Tile>
   {
     // attributes
+
     private Tile current;
-    private int min_col, min_row, max_col, max_row;
-    
+    private final int min_col, max_col, max_row;
+
     // methods
     public RowByRow(Tile current, Tile max)
     {
       this.current = current;
-      min_col = (int)current.grid_position.x;
-      min_row = (int)current.grid_position.y;
-      max_col 
-        = (int)((max == null) ? current.tilegrid[0].length-1 : max.grid_position.x);
-      max_row 
-        = (int)((max == null) ? current.tilegrid.length-1 : max.grid_position.y);
+      min_col = (int) current.grid_position.x;
+      max_col = (int) ((max == null) ? current.tilegrid[0].length - 1 : max.grid_position.x);
+      max_row = (int) ((max == null) ? current.tilegrid.length - 1 : max.grid_position.y);
     }
+
     public RowByRow(Tile _current)
     {
       this(_current, null);
@@ -203,11 +217,11 @@ public class TileGrid implements Iterable<Tile>
     {
       Tile previous = current;
 
-      current = ((int)current.grid_position.x == max_col
-        ? (((int)current.grid_position.y == max_row) 
-              ? null 
-              : current.tilegrid[(int)current.grid_position.y+1][min_col]) 
-        : current.tilegrid[(int)current.grid_position.y][(int)current.grid_position.x+1]);
+      current = ((int) current.grid_position.x == max_col
+                 ? (((int) current.grid_position.y == max_row)
+                    ? null
+                    : current.tilegrid[(int) current.grid_position.y + 1][min_col])
+                 : current.tilegrid[(int) current.grid_position.y][(int) current.grid_position.x + 1]);
 
       return previous;
     }
@@ -222,7 +236,7 @@ public class TileGrid implements Iterable<Tile>
   @Override
   public Iterator<Tile> iterator()
   {
-    return new RowByRow(tiles[(int)grid_area.y][(int)grid_area.x], 
+    return new RowByRow(tiles[(int)grid_area.y][(int)grid_area.x],
                         tiles[(int)grid_area.endy()][(int)grid_area.endx()]);
   }
 }

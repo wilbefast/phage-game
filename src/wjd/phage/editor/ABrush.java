@@ -44,7 +44,7 @@ public abstract class ABrush implements IVisible
   public void paint(TileGrid grid)
   {
     TileGrid target_field = grid.createSubGrid(coverage);
-    for(Tile target : target_field)
+    if(target_field != null) for(Tile target : target_field)
       paint(target);
   }
   

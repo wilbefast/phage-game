@@ -24,7 +24,7 @@ import wjd.math.Rect;
 import wjd.math.V2;
 import wjd.phage.level.LevelController;
 import wjd.phage.level.LevelScene;
-import wjd.phage.level.Tile;
+import wjd.util.ObjectCycle;
 
 /**
  *
@@ -34,11 +34,6 @@ import wjd.phage.level.Tile;
 public class EditorController extends LevelController
 {
   /* CONSTANTS */
-  private static final ABrush[] BRUSHES = 
-  { 
-    new TerrainBrush(), 
-    new UnitBrush() 
-  };
   private static final Rect GUI_BOX = new Rect(0, 0, 640, 32);
   private static final String gui_txt[] =
   {
@@ -52,8 +47,7 @@ public class EditorController extends LevelController
   };
 
   /* ATTRIBUTES */
-  private int brush_i = 0;
-  private Tile previous_target = null;
+  private final ObjectCycle<ABrush> brushes;
   
   /* METHODS */
 
@@ -61,6 +55,9 @@ public class EditorController extends LevelController
   public EditorController(LevelScene level)
   {
     super(level);
+    // create brush cycler
+    ABrush brush_array[] = { new TerrainBrush(), new UnitBrush() };
+    brushes = new ObjectCycle<ABrush>(brush_array);
   }
   
   /* OVERRIDES -- CONTROLLER */
@@ -77,7 +74,7 @@ public class EditorController extends LevelController
     
     // draw brush paint
     canvas.setCameraActive(true);
-    BRUSHES[brush_i].render(canvas);
+    brushes.current().render(canvas);
   }
   
   @Override
@@ -85,10 +82,7 @@ public class EditorController extends LevelController
   {
     // change the "paint" of the current brush
     if(event.pressed && event.button == IInput.EMouseButton.RIGHT)
-    {
-      BRUSHES[brush_i].changeColour();
-      previous_target = null;
-    }
+      brushes.current().changeColour();
     
     return EUpdateResult.CONTINUE;
   }
@@ -109,8 +103,7 @@ public class EditorController extends LevelController
         case L_SHIFT:
         case R_SHIFT:
           // change brush on SHIFT
-          brush_i = (brush_i + 1)%BRUSHES.length;
-          previous_target = null;
+          brushes.next();
         break;
       }
     }
@@ -128,12 +121,12 @@ public class EditorController extends LevelController
       return result;
     
     // reset brush position
-    BRUSHES[brush_i].setSize(1/level.getCamera().getZoom()); // size first!
-    BRUSHES[brush_i].setPosition(level.getCamera().getGlobal(input.getMousePosition()));
+    brushes.current().setSize(1/level.getCamera().getZoom()); // size first!
+    brushes.current().setPosition(level.getCamera().getGlobal(input.getMousePosition()));
     
     // "paint" using the current brush
     if(input.isMouseClicking(IInput.EMouseButton.LEFT))
-        BRUSHES[brush_i].paint(level.tilegrid);
+        brushes.current().paint(level.tilegrid);
 
     return EUpdateResult.CONTINUE;
   }

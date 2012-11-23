@@ -23,6 +23,7 @@ import wjd.amb.control.IInput;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.math.Rect;
+import wjd.math.V2;
 import wjd.phage.level.LevelController;
 import wjd.phage.level.LevelScene;
 import wjd.phage.level.Tile;
@@ -69,32 +70,35 @@ public class PlayController extends LevelController
   @Override
   public EUpdateResult processMouseClick(IInput.MouseClick event)
   {
+    // pressed?
     if(event.pressed)
-      // pressed
+      
       selection_box.pos(event.input.getMousePosition());
+    
+    // released?
     else 
     {
-      // released
-      TileGrid selection 
-        = level.tilegrid.createSubGrid(level.getCamera().getGlobal(selection_box.makePositive()));
+      // deselect previous units
+      deselectAll();
       
-      if(selection != null) 
+      // calculate selection area
+      selection_box.makePositive();
+      Rect global_selection = level.getCamera().getGlobal(selection_box);
+      
+      // drag-selection?
+      if(selection_box.w != 0 && selection_box.h != 0)
       {
-        // deselect previous units
-        deselectAll();
-        for(Tile t : selection)
-        {
-          Unit u = t.getUnit();
-          if (u != null)
-          {
-            u.setSelected(true);
-            selected_units.add(u);
-          }
-        }
+        TileGrid selection = level.tilegrid.createSubGrid(global_selection);
+        if(selection != null) for(Tile t : selection)
+          select(t);
       }
-      
-      selection_box.h = selection_box.w = 0;
+      // click-unclick?
+      else
+        select(level.tilegrid.getTile(global_selection.pos()));
     }
+    
+    // close selection box
+    selection_box.h = selection_box.w = 0;
     
     // all clear
     return EUpdateResult.CONTINUE;
@@ -116,5 +120,18 @@ public class PlayController extends LevelController
     for(Unit u : selected_units)
       u.setSelected(false);
     selected_units.clear();
+  }
+  
+  private void select(Tile t)
+  {
+    if(t == null)
+      return;
+      
+    Unit u = t.getUnit();
+    if (u != null)
+    {
+      u.setSelected(true);
+      selected_units.add(u);
+    }
   }
 }
