@@ -31,6 +31,12 @@ public class UnitBrush extends ABrush
   /* ATTRIBUTES */
   private boolean erase = false;
   
+  /* METHODS */
+  public UnitBrush()
+  {
+    super(false);
+  }
+  
   /* IMPLEMENTS -- IBRUSH */
   
   @Override
@@ -49,6 +55,6 @@ public class UnitBrush extends ABrush
   public void render(ICanvas canvas)
   {
     canvas.setColour(Colour.BLACK);
-    //canvas.circle(position, 10.0f, !erase);
+    canvas.circle(coverage.getCentre(), Tile.HSIZE.x, !erase);
   }
 }

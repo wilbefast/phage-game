@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import wjd.math.Rect;
@@ -65,7 +66,7 @@ public class TileGrid implements Iterable<Tile>
     // set all tiles as free
     for (int row = (int) grid_area.y; row <= (int)(grid_area.endy()); row++)
       for (int col = (int) grid_area.x; col <= (int) (grid_area.endx()); col++)
-        tiles[row][col] = new Tile(row, col, Tile.EType.FLOOR, this);
+        tiles[row][col] = new Tile(row, col, Tile.EType.FLOOR);
     return this;
   }
 
@@ -123,9 +124,25 @@ public class TileGrid implements Iterable<Tile>
     return (sub_grid_area == null) ? null : new TileGrid(tiles, sub_grid_area);
   }
 
-  public TileGrid getAdjascent(Tile tile)
+  public Iterable<Tile> getNeighbours4(Tile tile, Tile.EType type)
   {
-    return createSubGrid(new Rect(tile.grid_position, new V2(3, 3)));
+    // local variables
+    V2 pos = new V2();
+    Tile neighbour;
+    LinkedList<Tile> neighbour_list = new LinkedList<Tile>();
+    
+    // add applicable neighbours
+    for(int row = -1; row < 2; row++)
+    for(int col = -1; col < 2; col++)
+    if(Math.abs(row + col) == 1)  // only the 4 left, right, below and above
+    {
+      neighbour = getTileGrid(pos.reset(tile.grid_position).add(col, row));
+      if(neighbour != null && neighbour.getType() == type)
+        neighbour_list.add(neighbour);
+    }
+    
+    // return the result
+    return neighbour_list;
   }
 
   /**

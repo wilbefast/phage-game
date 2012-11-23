@@ -40,6 +40,7 @@ public class TerrainBrush extends ABrush
   // constructors
   TerrainBrush()
   {
+    super(true);
   }
   
   /* IMPLEMENTS -- IBRUSH */

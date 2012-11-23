@@ -30,9 +30,18 @@ import wjd.phage.level.TileGrid;
 public abstract class ABrush implements IVisible
 {
   /* ATTRIBUTES */
-  protected Rect coverage = new Rect();
+  protected final boolean fill;
+  protected Rect coverage = new Rect(Tile.SIZE.clone());
   
   /* METHODS */
+  
+  // constructors
+  protected ABrush(boolean fill)
+  {
+    this.fill = fill;
+  }
+  
+  // mutators
   public void setPosition(V2 position)
   {
     coverage.centrePos(position);
@@ -43,9 +52,19 @@ public abstract class ABrush implements IVisible
   }
   public void paint(TileGrid grid)
   {
-    TileGrid target_field = grid.createSubGrid(coverage);
-    if(target_field != null) for(Tile target : target_field)
-      paint(target);
+    // fill entire covered area
+    if(fill)
+    {
+      TileGrid target_field = grid.createSubGrid(coverage);
+      if(target_field != null) for(Tile target : target_field)
+        paint(target);
+    }
+    // only paint a single Tile
+    else
+    {
+      Tile t = grid.getTilePixel(coverage.getCentre());
+      if(t != null) paint(t);
+    }
   }
   
   /* INTERFACE */

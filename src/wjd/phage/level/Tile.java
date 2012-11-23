@@ -17,7 +17,6 @@
 package wjd.phage.level;
 
 import java.io.Serializable;
-import java.util.Iterator;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
@@ -35,7 +34,8 @@ public class Tile implements IVisible, Serializable
   public static final V2 SIZE = new V2(32, 32);
   public static final V2 HSIZE = SIZE.clone().scale(0.5f);
   public static final V2 ISIZE = SIZE.clone().inv();
-  
+
+
   /* NESTING */
   public static enum EType
   {
@@ -49,16 +49,15 @@ public class Tile implements IVisible, Serializable
   private final Rect pixel_area;
   private EType type;
   private Unit unit = null;
-  public final TileGrid tilegrid;
 
   /* METHODS */
+  
   // constructors
-  public Tile(int row, int col, EType type, TileGrid tilegrid)
+  public Tile(int row, int col, EType type)
   {
     grid_position = new V2(col, row);
     pixel_area = new Rect(grid_position.clone().scale(SIZE), SIZE);
     this.type = type;
-    this.tilegrid = tilegrid;
   }
 
   // accessors
@@ -66,6 +65,12 @@ public class Tile implements IVisible, Serializable
   {
     return unit;
   }
+  
+  public EType getType()
+  {
+    return type;
+  }
+  
   
   // mutators
   public void setType(EType type)

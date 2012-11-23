@@ -104,7 +104,7 @@ public abstract class PathSearch implements Runnable
         return true;
 
       // try to expand each neighbour
-      for (Tile t : grid.getAdjascent(x.tile))
+      for (Tile t : grid.getNeighbours4(x.tile, Tile.EType.FLOOR))
         expand(x, t);
 
       // remember to close x now that all connections have been expanded
