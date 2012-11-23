@@ -16,6 +16,8 @@
  */
 package wjd.phage.play;
 
+import java.util.LinkedList;
+import java.util.List;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IInput;
 import wjd.amb.view.Colour;
@@ -36,6 +38,7 @@ public class PlayController extends LevelController
 {
   /* ATTRIBUTES */
   private Rect selection_box = new Rect();
+  private List<Unit> selected_units = new LinkedList<Unit>();
   
   /* METHODS */
 
@@ -73,19 +76,25 @@ public class PlayController extends LevelController
     {
       // released
       TileGrid selection 
-        = level.tilegrid.createSubGrid(level.getCamera().getGlobal(selection_box));
+        = level.tilegrid.createSubGrid(level.getCamera().getGlobal(selection_box.makePositive()));
       
-      if(selection != null) for(Tile t : selection)
+      if(selection != null) 
       {
-        Unit u = t.getUnit();
-        if (u != null)
-          u.setSelected(true);
+        // deselect previous units
+        deselectAll();
+        for(Tile t : selection)
+        {
+          Unit u = t.getUnit();
+          if (u != null)
+          {
+            u.setSelected(true);
+            selected_units.add(u);
+          }
+        }
       }
       
       selection_box.h = selection_box.w = 0;
     }
-    
-    
     
     // all clear
     return EUpdateResult.CONTINUE;
@@ -98,5 +107,14 @@ public class PlayController extends LevelController
     canvas.setLineWidth(2.0f);
     canvas.setColour(Colour.TEAL);
     canvas.box(selection_box, false);
+  }
+  
+  /* SUBROUTINES */
+  
+  private void deselectAll()
+  {
+    for(Unit u : selected_units)
+      u.setSelected(false);
+    selected_units.clear();
   }
 }

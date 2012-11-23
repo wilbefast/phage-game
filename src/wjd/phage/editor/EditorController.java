@@ -76,6 +76,7 @@ public class EditorController extends LevelController
       canvas.text(gui_txt[i], gui_pos[i]);
     
     // draw brush paint
+    canvas.setCameraActive(true);
     BRUSHES[brush_i].render(canvas);
   }
   
@@ -113,7 +114,6 @@ public class EditorController extends LevelController
         break;
       }
     }
-
   
     // all clear
     return EUpdateResult.CONTINUE;
@@ -130,7 +130,6 @@ public class EditorController extends LevelController
     // reset brush position
     BRUSHES[brush_i].setSize(1/level.getCamera().getZoom()); // size first!
     BRUSHES[brush_i].setPosition(level.getCamera().getGlobal(input.getMousePosition()));
-
     
     // "paint" using the current brush
     if(input.isMouseClicking(IInput.EMouseButton.LEFT))

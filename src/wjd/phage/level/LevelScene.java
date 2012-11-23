@@ -106,8 +106,8 @@ public class LevelScene extends AScene
     if(visible != null) for(Tile t : visible)
       t.render(canvas);
 
-    // turn off camera to draw the GUI overlay
-    canvas.setCamera(null);
+    // render GUI elements
+    canvas.setCameraActive(false);
     ((LevelController)controller).render(canvas);
   }
 }

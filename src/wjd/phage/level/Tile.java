@@ -145,7 +145,7 @@ public class Tile implements IVisible, Serializable
   {
     return unit;
   }
-
+  
   // mutators
   public void setType(EType type)
   {

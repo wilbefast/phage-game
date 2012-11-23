@@ -45,7 +45,7 @@ public class TileGrid implements Iterable<Tile>
   /* METHODS */
 
   // constructors
-  TileGrid(V2 size)
+  public TileGrid(V2 size)
   {
     grid_area = new Rect(V2.ORIGIN, size).floor();
     pixel_area = grid_area.clone().stretch(Tile.SIZE).floor();
@@ -57,7 +57,7 @@ public class TileGrid implements Iterable<Tile>
     this.tiles = tiles;
     Rect max_grid_area = new Rect(0, 0, tiles[0].length-1, tiles.length-1);
     this.grid_area = 
-      pixel_area.clone().div(Tile.SIZE).getIntersection(max_grid_area).floor();
+      pixel_area.clone().div(Tile.SIZE).getIntersection(max_grid_area);
     this.pixel_area = grid_area.clone().stretch(Tile.SIZE).floor();
   }
   
@@ -85,22 +85,13 @@ public class TileGrid implements Iterable<Tile>
    */
   public TileGrid createSubGrid(Rect sub_area)
   {
-    // check for invalid rectangles
-    /*if(sub_area.endx() < Tile.SIZE.x*grid_area.x || sub_area.endy() < Tile.SIZE.y*grid_area.y 
-       || sub_area.x > Tile.SIZE.x*grid_area.w || sub_area.y > Tile.SIZE.y*grid_area.h)
-        return null;*/
-    
-    // grab the border indices
-    /*int min_col = (int)Math.max(0, sub_area.x*Tile.ISIZE.x-1),
-        min_row = (int)Math.max(0, sub_area.y*Tile.ISIZE.y-1),
-        max_col = (int)Math.min(grid_area.w-1, sub_area.endx()*Tile.ISIZE.x+1),
-        max_row = (int)Math.min(grid_area.h-1, sub_area.endy()*Tile.ISIZE.y+1);*/
-
     // build and return the field
-    
-    Rect r = sub_area.getIntersection(pixel_area);
-    
-    return new TileGrid(tiles, r);//sub_area.getIntersection(pixel_area));
+    return new TileGrid(tiles, sub_area.getIntersection(pixel_area));
+  }
+  
+  public TileGrid getAdjascent(Tile tile)
+  {
+    return createSubGrid(new Rect(tile.grid_position, new V2(3.0f, 3.0f)));
   }
   
   /** 
@@ -176,7 +167,7 @@ public class TileGrid implements Iterable<Tile>
   {
     return "Tilegrid(" + grid_area + ')';
   }
-  
+
   /* IMPLEMENTS -- ITERABLE */
   
   public static class RowByRow implements Iterator<Tile>
