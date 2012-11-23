@@ -44,95 +44,16 @@ public class Tile implements IVisible, Serializable
     WALL
   }
 
-  public static class RowByRow implements Iterator<Tile>
-  {
-    // attributes
-    private Tile current;
-    private int max_col, max_row;
-    
-    // methods
-    public RowByRow(Tile current, Tile max)
-    {
-      this.current = current;
-      max_col 
-        = (int)((max == null) ? current.tilegrid[0].length-1 : max.grid_position.x);
-      max_row 
-        = (int)((max == null) ? current.tilegrid.length-1 : max.grid_position.y);
-    }
-    public RowByRow(Tile _current)
-    {
-      this(_current, null);
-    }
-
-    @Override
-    public boolean hasNext()
-    {
-      return (current != null);
-    }
-
-    @Override
-    public Tile next()
-    {
-      Tile previous = current;
-
-      current = ((int)current.grid_position.x == max_col
-        ? (((int)current.grid_position.y == max_row) 
-              ? null 
-              : current.tilegrid[(int)current.grid_position.y+1][0]) 
-        : current.tilegrid[(int)current.grid_position.y][(int)current.grid_position.x+1]);
-
-      return previous;
-    }
-
-    @Override
-    public void remove()
-    {
-      // do nothing
-    }
-  }
-  
-  public static class Field implements Iterable<Tile>
-  { 
-    // attributes
-    public Tile first, last;
-    
-    // methods
-    public Field(Tile first, Tile last)
-    {
-      this.first = first;
-      this.last = last;
-    }
-
-    public void reset(Tile first, Tile last)
-    {
-      this.first = first;
-      this.last = last;
-    }
-    
-    // overrides -- object
-    @Override
-    public String toString()
-    {
-      return "[" + first + ',' + last + ']';
-    }
-    
-    // implements -- iterable
-    @Override
-    public Iterator<Tile> iterator()
-    {
-      return new RowByRow(first, last);
-    }
-  }
   /* ATTRIBUTES */
   public final V2 grid_position; // (col, row)
   private final Rect pixel_area;
   private EType type;
   private Unit unit = null;
-  public final Tile[][] tilegrid;
+  public final TileGrid tilegrid;
 
   /* METHODS */
   // constructors
-  public Tile(int row, int col, EType type, Tile[][] tilegrid)
+  public Tile(int row, int col, EType type, TileGrid tilegrid)
   {
     grid_position = new V2(col, row);
     pixel_area = new Rect(grid_position.clone().scale(SIZE), SIZE);

@@ -32,6 +32,7 @@ public class Unit implements IVisible, Serializable
   /* ATTRIBUTES */
   private Tile tile;
   private boolean selected = false;
+  private Order order = null;
   
   /* METHODS */
 
@@ -50,6 +51,11 @@ public class Unit implements IVisible, Serializable
     this.selected = selected;
   }
   
+  public void setOrder(Order order)
+  {
+    this.order = order;
+  }
+  
   /* IMPLEMENTS -- IVISIBLE */
   private static V2 stamp_pos = new V2();
   @Override
@@ -59,5 +65,8 @@ public class Unit implements IVisible, Serializable
     
     stamp_pos.reset(tile.grid_position).scale(Tile.SIZE).add(Tile.HSIZE);
     canvas.circle(stamp_pos, Tile.SIZE.x/2, true);
+    
+    if(order != null)
+      canvas.line(stamp_pos, order.target.grid_position.clone().scale(Tile.SIZE));
   }
 }

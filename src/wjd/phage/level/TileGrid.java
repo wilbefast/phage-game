@@ -65,22 +65,37 @@ public class TileGrid implements Iterable<Tile>
     // set all tiles as free
     for (int row = (int) grid_area.y; row <= (int)(grid_area.endy()); row++)
       for (int col = (int) grid_area.x; col <= (int) (grid_area.endx()); col++)
-        tiles[row][col] = new Tile(row, col, Tile.EType.FLOOR, tiles);
+        tiles[row][col] = new Tile(row, col, Tile.EType.FLOOR, this);
     return this;
   }
 
   // accessors
   /**
-   * Grab the Tile at the specified position.
+   * Grab the Tile at the specified "pixel" position (x, y).
    *
    * @param pixel_pos the vector pixel-position (x, y) of the desired Tile,
    * not to the confused with the (col, row) grid-position.
    * @return the Tile at the specified position or null if there position is
    * invalid (outside of the grid).
    */
-  public Tile getTile(V2 pixel_pos)
+  public Tile getTilePixel(V2 pixel_pos)
   {
     V2 grid_pos = pixel_pos.clone().scale(Tile.ISIZE).floor();
+    return (validGridPos(grid_pos) 
+            ? tiles[(int)grid_pos.y][(int)grid_pos.x] 
+            : null);
+  }
+  
+  /**
+   * Grab the Tile at the specified "grid" position (col, row).
+   *
+   * @param grid_pos the vector grid-position (col, row) of the desired Tile,
+   * not to the confused with the (x, y) pixel-position.
+   * @return the Tile at the specified position or null if there position is
+   * invalid (outside of the grid).
+   */
+  public Tile getTileGrid(V2 grid_pos)
+  {
     return (validGridPos(grid_pos) 
             ? tiles[(int)grid_pos.y][(int)grid_pos.x] 
             : null);
@@ -189,39 +204,38 @@ public class TileGrid implements Iterable<Tile>
   {
     // attributes
 
-    private Tile current;
-    private final int min_col, max_col, max_row;
+    private final TileGrid tilegrid;
+    private V2 current_pos;
 
     // methods
-    public RowByRow(Tile current, Tile max)
+    public RowByRow(TileGrid tilegrid)
     {
-      this.current = current;
-      min_col = (int) current.grid_position.x;
-      max_col = (int) ((max == null) ? current.tilegrid[0].length - 1 : max.grid_position.x);
-      max_row = (int) ((max == null) ? current.tilegrid.length - 1 : max.grid_position.y);
+      this.tilegrid = tilegrid;
+      this.current_pos = tilegrid.grid_area.pos();
     }
-
-    public RowByRow(Tile _current)
-    {
-      this(_current, null);
-    }
-
+    
     @Override
     public boolean hasNext()
     {
-      return (current != null);
+      return (current_pos != null);
     }
 
     @Override
     public Tile next()
     {
-      Tile previous = current;
-
-      current = ((int) current.grid_position.x == max_col
-                 ? (((int) current.grid_position.y == max_row)
-                    ? null
-                    : current.tilegrid[(int) current.grid_position.y + 1][min_col])
-                 : current.tilegrid[(int) current.grid_position.y][(int) current.grid_position.x + 1]);
+      Tile previous = tilegrid.getTileGrid(current_pos);
+      
+      // overlap collumns
+      current_pos.x++;
+      if(current_pos.x > tilegrid.grid_area.endx())
+      {
+        current_pos.x = tilegrid.grid_area.x;
+        current_pos.y++;
+      }
+      
+      // overlap row
+      if(current_pos.y > tilegrid.grid_area.endy())
+        current_pos = null;
 
       return previous;
     }
@@ -236,7 +250,6 @@ public class TileGrid implements Iterable<Tile>
   @Override
   public Iterator<Tile> iterator()
   {
-    return new RowByRow(tiles[(int)grid_area.y][(int)grid_area.x],
-                        tiles[(int)grid_area.endy()][(int)grid_area.endx()]);
+    return new RowByRow(this);
   }
 }

@@ -105,7 +105,7 @@ public class LevelScene extends AScene
     // draw each cell relative to the camera
     if(visible != null) for(Tile t : visible)
       t.render(canvas);
-
+      
     // render GUI elements
     canvas.setCameraActive(false);
     ((LevelController)controller).render(canvas);

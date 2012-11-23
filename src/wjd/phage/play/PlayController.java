@@ -26,6 +26,7 @@ import wjd.math.Rect;
 import wjd.math.V2;
 import wjd.phage.level.LevelController;
 import wjd.phage.level.LevelScene;
+import wjd.phage.level.Order;
 import wjd.phage.level.Tile;
 import wjd.phage.level.TileGrid;
 import wjd.phage.level.Unit;
@@ -70,10 +71,44 @@ public class PlayController extends LevelController
   @Override
   public EUpdateResult processMouseClick(IInput.MouseClick event)
   {
+    // left mouse
+    if(event.button == IInput.EMouseButton.LEFT)
+      leftMouse(event.pressed, event.input.getMousePosition());
+    
+    // right mouse
+    else if(event.button == IInput.EMouseButton.RIGHT)
+      rightMouse(event.pressed, event.input.getMousePosition());
+    
+    // all clear
+    return EUpdateResult.CONTINUE;
+  }
+  
+  
+  @Override
+  public void render(ICanvas canvas)
+  {
+    canvas.setLineWidth(2.0f);
+    canvas.setColour(Colour.TEAL);
+    canvas.box(selection_box, false);
+  }
+  
+  /* SUBROUTINES */
+  
+  private void rightMouse(boolean pressed, V2 position)
+  {
+    if(pressed) for(Unit u : selected_units)
+    {
+      Tile tile = level.tilegrid.getTilePixel(level.getCamera().getGlobal(position));
+      if(tile != null)
+        u.setOrder(new Order(Order.Type.MOVE, tile));
+    }
+  }
+  
+  private void leftMouse(boolean pressed, V2 position)
+  {
     // pressed?
-    if(event.pressed)
-      
-      selection_box.pos(event.input.getMousePosition());
+    if(pressed)
+      selection_box.pos(position);
     
     // released?
     else 
@@ -94,26 +129,12 @@ public class PlayController extends LevelController
       }
       // click-unclick?
       else
-        select(level.tilegrid.getTile(global_selection.pos()));
+        select(level.tilegrid.getTilePixel(global_selection.pos()));
     }
     
     // close selection box
     selection_box.h = selection_box.w = 0;
-    
-    // all clear
-    return EUpdateResult.CONTINUE;
   }
-  
-  
-  @Override
-  public void render(ICanvas canvas)
-  {
-    canvas.setLineWidth(2.0f);
-    canvas.setColour(Colour.TEAL);
-    canvas.box(selection_box, false);
-  }
-  
-  /* SUBROUTINES */
   
   private void deselectAll()
   {
