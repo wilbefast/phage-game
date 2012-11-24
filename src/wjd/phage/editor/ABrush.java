@@ -83,18 +83,14 @@ public abstract class ABrush implements IVisible
     {
       TileGrid target_field = grid.createSubGrid(coverage);
       if(target_field != null) for(Tile target : target_field)
-      {
-        if(erase)
-          erase(target);
-        else
-          paint(target);
-      }
+        touch(target, erase);
     }
     // only paint a single Tile
     else
     {
-      Tile t = grid.getTilePixel(coverage.getCentre());
-      if(t != null) paint(t);
+      Tile target = grid.getTilePixel(coverage.getCentre());
+      if(target != null)
+        touch(target, erase);
     }
   }
   
@@ -103,6 +99,15 @@ public abstract class ABrush implements IVisible
   public abstract void erase(Tile target);
   public abstract void changeColour();
 
+  /* SUBROUTINES */
+  private void touch(Tile target, boolean erase)
+  {
+    if(erase)
+      erase(target);
+    else
+      paint(target);
+  }
+  
 }
 
 

@@ -133,6 +133,8 @@ public class Tile implements IVisible, IDynamic
   public void setUnit(Unit unit)
   {
     this.unit = unit;
+    if(unit != null)
+      unit.setTile(this);
   }
   
   
@@ -205,6 +207,8 @@ public class Tile implements IVisible, IDynamic
       // delete if required
       if(result == EUpdateResult.DELETE_ME)
         unit = null;
+      else if(result == EUpdateResult.MOVE_ME)
+        unit.getDestination().setUnit(unit);
     }
 
     // spread infection

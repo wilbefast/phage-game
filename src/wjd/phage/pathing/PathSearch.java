@@ -144,7 +144,7 @@ public class PathSearch implements Runnable
 
     // start at the end, trace backwards adding vertices
     SearchState current = end;
-    while (current != null)
+    while (current != start)
     {
       // add element to front, in order for list to be in the right order
       result.addFirst(current.tile);
