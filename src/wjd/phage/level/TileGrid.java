@@ -42,6 +42,7 @@ public class TileGrid implements Iterable<Tile>
 
   public final Tile[][] tiles;
   private final Rect grid_area;
+  private final Rect pixel_area;
 
   /* METHODS */
   
@@ -50,6 +51,8 @@ public class TileGrid implements Iterable<Tile>
   {
     this.tiles = tiles;
     this.grid_area = grid_area;
+    this.pixel_area 
+      = new Rect(grid_area.pos(), grid_area.size().add(1,1)).mult(Tile.SIZE);
   }
   
   public TileGrid(V2 size)
@@ -65,6 +68,8 @@ public class TileGrid implements Iterable<Tile>
     
     // recover size and reallocate matrix
     grid_area = (Rect)in.readObject();
+    this.pixel_area 
+      = new Rect(grid_area.pos(), grid_area.size().add(1,1)).mult(Tile.SIZE);
     tiles = new Tile[(int)grid_area.h + 1][(int)grid_area.w + 1];
     
     // fill matrix with values
@@ -87,6 +92,12 @@ public class TileGrid implements Iterable<Tile>
   }
 
   // accessors
+  
+  public Rect getPixelArea()
+  {
+    return pixel_area;
+  }
+  
   /**
    * Grab the Tile at the specified "pixel" position (x, y).
    *
@@ -95,7 +106,7 @@ public class TileGrid implements Iterable<Tile>
    * @return the Tile at the specified position or null if there position is
    * invalid (outside of the grid).
    */
-  public Tile getTilePixel(V2 pixel_pos)
+  public Tile pixelToTile(V2 pixel_pos)
   {
     V2 grid_pos = pixel_pos.clone().scale(Tile.ISIZE).floor();
     return (validGridPos(grid_pos) 
@@ -111,7 +122,7 @@ public class TileGrid implements Iterable<Tile>
    * @return the Tile at the specified position or null if there position is
    * invalid (outside of the grid).
    */
-  public Tile getTileGrid(V2 grid_pos)
+  public Tile gridToTile(V2 grid_pos)
   {
     return (validGridPos(grid_pos) 
             ? tiles[(int)grid_pos.y][(int)grid_pos.x] 
@@ -152,7 +163,7 @@ public class TileGrid implements Iterable<Tile>
     for(int col = -1; col < 2; col++)
     if(Math.abs(row + col) == 1)  // only the 4 left, right, below and above
     {
-      neighbour = getTileGrid(pos.reset(tile.grid_position).add(col, row));
+      neighbour = gridToTile(pos.reset(tile.grid_position).add(col, row));
       if(neighbour != null && neighbour.getType() == type)
         neighbour_list.add(neighbour);
     }
@@ -231,7 +242,7 @@ public class TileGrid implements Iterable<Tile>
     @Override
     public Tile next()
     {
-      Tile previous = tilegrid.getTileGrid(current_pos);
+      Tile previous = tilegrid.gridToTile(current_pos);
       
       // overlap collumns
       current_pos.x++;

@@ -88,7 +88,7 @@ public abstract class ABrush implements IVisible
     // only paint a single Tile
     else
     {
-      Tile target = grid.getTilePixel(coverage.getCentre());
+      Tile target = grid.pixelToTile(coverage.getCentre());
       if(target != null)
         touch(target, erase);
     }

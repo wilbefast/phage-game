@@ -126,7 +126,7 @@ public class PlayController extends LevelController
   {
     if(pressed) for(Unit u : selected_units)
     {
-      Tile tile = level.tilegrid.getTilePixel(level.getCamera().getGlobal(position));
+      Tile tile = level.tilegrid.pixelToTile(level.getCamera().getGlobal(position));
       if(tile != null)
         u.setOrder(new UnitOrder(tile));
     }
@@ -157,7 +157,7 @@ public class PlayController extends LevelController
       }
       // click-unclick?
       else
-        select(level.tilegrid.getTilePixel(global_selection.pos()));
+        select(level.tilegrid.pixelToTile(global_selection.pos()));
     }
     
     // close selection box

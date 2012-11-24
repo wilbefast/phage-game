@@ -18,6 +18,7 @@ package wjd.phage.level;
 
 import wjd.amb.AScene;
 import wjd.amb.control.EUpdateResult;
+import wjd.amb.view.Colour;
 import wjd.amb.view.ICamera;
 import wjd.amb.view.ICanvas;
 import wjd.math.V2;
@@ -96,10 +97,12 @@ public class LevelScene extends AScene
   {    
     // clear the screen
     canvas.clear();
-
+    
     // find out what cells the camera can see
     canvas.setCamera(camera);
     TileGrid visible = tilegrid.createSubGrid(camera.getView());
+    canvas.setColour(Colour.VIOLET);
+    canvas.box(visible.getPixelArea(), true);
 
     // draw each cell relative to the camera
     if(visible != null) for(Tile t : visible)

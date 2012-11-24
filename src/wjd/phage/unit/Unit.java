@@ -92,9 +92,11 @@ public class Unit implements IVisible, IDynamic, Serializable
     this.selected = selected;
   }
   
-  public void setOrder(UnitOrder order)
+  public void setOrder(UnitOrder new_order)
   {
-    this.order = order;
+    order = new_order;
+    destination = null;
+    progress.empty();
     path = null;
     state = 0;
   }
@@ -146,7 +148,7 @@ public class Unit implements IVisible, IDynamic, Serializable
   @Override
   public void render(ICanvas canvas)
   {
-    canvas.setColour(selected ? Colour.WHITE : Colour.BLACK);
+    canvas.setColour(selected ? Colour.TEAL : Colour.BLACK);
     canvas.circle(position, Tile.SIZE.x/2, true);
   }
   
@@ -159,6 +161,10 @@ public class Unit implements IVisible, IDynamic, Serializable
     /*AUnitState next_state = state.update(this, t_delta);
     if(next_state != null)
       state = next_state;*/
+    
+    // clear up infection
+    for(Tile t : tile.grid.getNeighbours4(tile, Tile.EType.FLOOR))
+      t.getInfection().empty();
     
     //! IDLE
     if(state == 0 && order != null)
@@ -185,21 +191,23 @@ public class Unit implements IVisible, IDynamic, Serializable
       }
       else
       {
-        // move towards destination
-        progress.tryDeposit((float)t_delta/500.0f);
+        // move towards destination if it is free
+        if(destination.getUnit() == null)
+        {
+          progress.tryDeposit((float)t_delta/500.0f);
+
+          float p = progress.balance();
+          V2 src = tile.pixel_position, dest = destination.pixel_position;
+          position.x = (1-p)*src.x + p*dest.x + Tile.HSIZE.x;
+          position.y = (1-p)*src.y + p*dest.y + Tile.HSIZE.y;
+
+          /*position = V2.inter(tile.pixel_position, destination.pixel_position,
+                                                   progress.balance());*/
 
 
-        float p = progress.balance();
-        V2 src = tile.pixel_position, dest = destination.pixel_position;
-        position.x = (1-p)*src.x + p*dest.x + Tile.HSIZE.x;
-        position.y = (1-p)*src.y + p*dest.y + Tile.HSIZE.y;
-
-        /*position = V2.inter(tile.pixel_position, destination.pixel_position,
-                                                 progress.balance());*/
-
-
-        if(progress.isFull())
-          return EUpdateResult.MOVE_ME;
+          if(progress.isFull())
+            return EUpdateResult.MOVE_ME;
+        }
       }
     }
    

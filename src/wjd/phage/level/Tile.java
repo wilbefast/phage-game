@@ -130,11 +130,15 @@ public class Tile implements IVisible, IDynamic
       infection.empty();
   }
 
-  public void setUnit(Unit unit)
+  public void setUnit(Unit new_unit)
   {
-    this.unit = unit;
-    if(unit != null)
-      unit.setTile(this);
+    // Unit must be cleared before it can be replaced
+    if(unit != null && new_unit != null)
+      return;
+    
+    unit = new_unit;
+    if(new_unit != null)
+      new_unit.setTile(this);
   }
   
   
@@ -163,7 +167,8 @@ public class Tile implements IVisible, IDynamic
     canvas.setColour(type == EType.FLOOR ? Colour.VIOLET : Colour.BLUE);
 
     // background
-    canvas.box(pixel_area, true);
+    if(type != EType.FLOOR)
+      canvas.box(pixel_area, true);
     
     // unit (optional)
     if (unit != null)
@@ -240,8 +245,8 @@ public class Tile implements IVisible, IDynamic
   {
     // some of the viral particles are destroyed...
     //infection.tryWithdrawPercent(INFECT_DECAY);
-    if(infection.balance() < INFECT_MIN)
-      infection.empty();
+    //if(infection.balance() < INFECT_MIN)
+      //infection.empty();
   }
   
   private void virusDisperse()
