@@ -38,7 +38,7 @@ import wjd.phage.pathing.PathSearch;
 public class Unit implements IVisible, IDynamic, Serializable
 {
   /* ATTRIBUTES */
-  public Tile current, next = null; //! FIXME
+  private Tile current, next = null;
   private float progress = 0.0f;
   private boolean selected = false;
   private UnitOrder order = null;
@@ -46,7 +46,7 @@ public class Unit implements IVisible, IDynamic, Serializable
   private int state = 0;
   
   //private AUnitState state = AUnitState.IDLING;
-  public Deque<Tile> path; //! FIXME
+  private Deque<Tile> path;
   
   /* METHODS */
 
@@ -68,7 +68,16 @@ public class Unit implements IVisible, IDynamic, Serializable
   }
 
   // accessors
-  public boolean isSelected() { return selected; }
+  public boolean isSelected() 
+  { 
+    return selected; 
+  }
+  
+    
+  public UnitOrder nextOrder()
+  {
+    return order;
+  }
 
   // mutators
   public void setSelected(boolean selected)
@@ -83,16 +92,28 @@ public class Unit implements IVisible, IDynamic, Serializable
     state = 0;
   }
   
-  public UnitOrder nextOrder()
-  {
-    return order;
-  }
-  
   public void save(ObjectOutputStream out) throws IOException
   {
     // don't write the tile, or we'll end up with a recursion loop!
-    out.writeObject(selected);
-    //out.writeObject(order);
+  }
+  
+  public void renderPath(ICanvas canvas)
+  {
+    // you can't draw what you don't have
+    if(path == null)
+      return;
+    
+    canvas.setCameraActive(true);
+      canvas.setColour(Colour.YELLOW);
+      V2 start = new V2(), end = new V2();
+      start.reset(current.grid_position).scale(Tile.SIZE);
+      for(Tile t : path)
+      {
+        end.reset(t.grid_position).scale(Tile.SIZE);
+        canvas.line(start, end);
+        start.reset(end);
+      }
+    canvas.setCameraActive(false);
   }
   
   /* IMPLEMENTS -- IVISIBLE */

@@ -18,7 +18,6 @@ package wjd.phage.editor;
 
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
-import wjd.math.Rect;
 import wjd.phage.level.Tile;
 
 /**
@@ -28,12 +27,6 @@ import wjd.phage.level.Tile;
  */
 public class TerrainBrush extends ABrush
 {
-  /* CONSTANTS */
-  private static final Colour FLOOR_COLOUR = new Colour(1.0f, 0.0f, 0.0f, 0.5f);
-  private static final Colour WALL_COLOUR = new Colour(0.0f, 0.0f, 1.0f, 0.5f);
-  
-  /* ATTRIBUTES */
-  private Tile.EType colour = Tile.EType.FLOOR;
 
   /* METHODS */
   
@@ -43,26 +36,23 @@ public class TerrainBrush extends ABrush
     super(true);
   }
   
-  /* IMPLEMENTS -- IBRUSH */
+  /* IMPLEMENTS -- ABRUSH */
   @Override
   public void paint(Tile target)
   {
-    target.setType(colour);
+    target.setType(Tile.EType.WALL);
+  }
+  
+  @Override
+  public void erase(Tile target)
+  {
+    target.setType(Tile.EType.FLOOR);
   }
 
   @Override
   public void changeColour()
   {
-    switch(colour)
-    {
-      case FLOOR:
-        colour = Tile.EType.WALL;
-        break;
-
-      case WALL:
-        colour = Tile.EType.FLOOR;
-        break;
-    }
+    // unused
   }
   
   /* IMPLEMENTS -- IVISIBLE */
@@ -70,19 +60,7 @@ public class TerrainBrush extends ABrush
   @Override
   public void render(ICanvas canvas)
   {
-    switch(colour)
-    {
-      case FLOOR:
-        canvas.setColour(FLOOR_COLOUR);
-      break;
-
-      case WALL:
-        canvas.setColour(WALL_COLOUR);
-      break;
-    }
-    
-    canvas.box(coverage, true);
-    canvas.setColour(Colour.BLACK);
+    canvas.setColour(Colour.BLUE);
     canvas.box(coverage, false);
   }
 }

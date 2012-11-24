@@ -103,7 +103,7 @@ public abstract class LevelController implements IController, IVisible, IDynamic
     if(event.key == IInput.EKeyCode.ESC)
     {
       level.setNext(new TitleScene());
-      return EUpdateResult.STOP;
+      return EUpdateResult.REPLACE_ME;
     }
     
         

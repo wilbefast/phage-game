@@ -30,7 +30,8 @@ import wjd.phage.level.TileGrid;
 public abstract class ABrush implements IVisible
 {
   /* ATTRIBUTES */
-  protected final boolean fill;
+  private final boolean fill;
+  private boolean pending_repaint = true;
   protected Rect coverage = new Rect(Tile.SIZE.clone());
   
   /* METHODS */
@@ -42,22 +43,52 @@ public abstract class ABrush implements IVisible
   }
   
   // mutators
+  
+  public void forceRepaint()
+  {
+    pending_repaint = true;
+  }
+  
   public void setPosition(V2 position)
   {
-    coverage.centrePos(position);
+    // reset only if a change has occured
+    if(position.x != coverage.x + coverage.w/2 
+    || position.y != coverage.y + coverage.h/2)
+    {
+      coverage.centrePos(position);
+      pending_repaint = true;
+    }
   }
+  
   public void setSize(float size)
   {
-    coverage.size(Tile.SIZE).scale(size);
+    // reset only if a change has occured
+    if(size*Tile.SIZE.x != coverage.w 
+    || size*Tile.SIZE.y != coverage.h)
+    {
+      coverage.size(Tile.SIZE).scale(size);
+      pending_repaint = true;
+    }
   }
-  public void paint(TileGrid grid)
+  
+  public void touch(TileGrid grid, boolean erase)
   {
+    if(pending_repaint)
+      pending_repaint = false;
+    else
+      return;
+    
     // fill entire covered area
     if(fill)
     {
       TileGrid target_field = grid.createSubGrid(coverage);
       if(target_field != null) for(Tile target : target_field)
-        paint(target);
+      {
+        if(erase)
+          erase(target);
+        else
+          paint(target);
+      }
     }
     // only paint a single Tile
     else
@@ -69,7 +100,9 @@ public abstract class ABrush implements IVisible
   
   /* INTERFACE */
   public abstract void paint(Tile target);
+  public abstract void erase(Tile target);
   public abstract void changeColour();
+
 }
 
 

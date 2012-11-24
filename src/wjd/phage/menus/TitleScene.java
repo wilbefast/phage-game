@@ -70,16 +70,16 @@ public class TitleScene extends AScene
         case R_SHIFT:
           // SHIFT to edit
           setNext(new LevelScene(LevelScene.EMode.EDITOR));
-          return EUpdateResult.STOP;
+          return EUpdateResult.REPLACE_ME;
 
         case L_ALT:
         case R_ALT:
           // ALT to play
           setNext(new LevelScene(LevelScene.EMode.PLAY));
-          return EUpdateResult.STOP;
+          return EUpdateResult.REPLACE_ME;
 
         case ESC:
-          return EUpdateResult.STOP;
+          return EUpdateResult.EXIT;
       }
     }
 

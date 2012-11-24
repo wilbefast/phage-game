@@ -19,45 +19,41 @@ package wjd.phage.editor;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.phage.level.Tile;
-import wjd.phage.unit.Unit;
 
 /**
  *
  * @author wdyce
- * @since Nov 2, 2012
+ * @since Nov 24, 2012
  */
-public class UnitBrush extends ABrush
+public class InfectionBrush extends ABrush
 {
-  /* ATTRIBUTES */
-  private boolean erase = false;
+  /* CONSTANTS */
+  private static final float PAINT_SPEED = 0.1f;
   
   /* METHODS */
-  public UnitBrush()
+  public InfectionBrush()
   {
-    super(false);
+    super(true);
   }
   
   /* IMPLEMENTS -- ABRUSH */
-  
   @Override
   public void paint(Tile target)
   {
-    // create unit
-    if(target.getType() != Tile.EType.WALL)
-      target.setUnit(new Unit(target));
+    if(target.getType() == Tile.EType.FLOOR)
+      target.getInfection().tryDeposit(PAINT_SPEED);
   }
   
   @Override
   public void erase(Tile target)
   {
-    // delete unit
-    target.setUnit(null);
+    target.getInfection().empty();
   }
 
   @Override
   public void changeColour()
   {
-    // unused
+    /* do nothing */
   }
   
   /* IMPLEMENTS -- IVISIBLE */
@@ -65,7 +61,7 @@ public class UnitBrush extends ABrush
   @Override
   public void render(ICanvas canvas)
   {
-    canvas.setColour(Colour.BLACK);
-    canvas.circle(coverage.getCentre(), Tile.HSIZE.x, false);
+    canvas.setColour(Colour.GREEN);
+    canvas.box(coverage, false);
   }
 }

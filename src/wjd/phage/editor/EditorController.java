@@ -56,7 +56,9 @@ public class EditorController extends LevelController
   {
     super(level);
     // create brush cycler
-    ABrush brush_array[] = { new TerrainBrush(), new UnitBrush() };
+    ABrush brush_array[] = { 
+      new TerrainBrush(), new UnitBrush(), new InfectionBrush() 
+    };
     brushes = new ObjectCycle<ABrush>(brush_array);
   }
   
@@ -80,10 +82,11 @@ public class EditorController extends LevelController
   @Override
   public EUpdateResult processMouseClick(IInput.MouseClick event)
   {
-    // change the "paint" of the current brush
-    if(event.pressed && event.button == IInput.EMouseButton.RIGHT)
-      brushes.current().changeColour();
-    
+    // force "repaint" with current brush
+    if(event.pressed && event.button == IInput.EMouseButton.LEFT)
+      brushes.current().forceRepaint();
+
+    // all clear!
     return EUpdateResult.CONTINUE;
   }
   
@@ -124,9 +127,12 @@ public class EditorController extends LevelController
     brushes.current().setSize(1/level.getCamera().getZoom()); // size first!
     brushes.current().setPosition(level.getCamera().getGlobal(input.getMousePosition()));
     
-    // "paint" using the current brush
+    // "paint" or erase using the current brush
     if(input.isMouseClicking(IInput.EMouseButton.LEFT))
-        brushes.current().paint(level.tilegrid);
+       brushes.current().touch(level.tilegrid, false);  // paint
+    if(input.isMouseClicking(IInput.EMouseButton.RIGHT))
+      brushes.current().touch(level.tilegrid, true);    // erase
+        
 
     return EUpdateResult.CONTINUE;
   }

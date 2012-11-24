@@ -87,28 +87,14 @@ public class PlayController extends LevelController
   @Override
   public void render(ICanvas canvas)
   {
+    // render unit paths (debug)
+    for(Unit u : selected_units)
+      u.renderPath(canvas);
+    
+    // render selection box
     canvas.setLineWidth(2.0f);
     canvas.setColour(Colour.TEAL);
     canvas.box(selection_box, false);
-    
-    canvas.setCameraActive(true);
-    canvas.setColour(Colour.YELLOW);
-    V2 a = new V2(), b = new V2();
-    for(Unit u : selected_units)
-    {
-      if(u.path == null )
-        continue;
-      a.reset(u.current.grid_position).scale(Tile.SIZE);
-      for(Tile t : u.path)
-      {
-        b.reset(t.grid_position).scale(Tile.SIZE);
-        
-        canvas.line(a, b);
-        
-        a.reset(b);
-      }
-    }
-    canvas.setCameraActive(false);
   }
   
   /* IMPLEMENTS -- IDYNAMIC */

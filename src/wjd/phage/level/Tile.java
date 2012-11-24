@@ -27,6 +27,7 @@ import wjd.amb.view.IVisible;
 import wjd.math.Rect;
 import wjd.math.V2;
 import wjd.phage.unit.Unit;
+import wjd.util.BoundedValue;
 
 /**
  *
@@ -39,6 +40,9 @@ public class Tile implements IVisible, IDynamic
   public static final V2 SIZE = new V2(32, 32);
   public static final V2 HSIZE = SIZE.clone().scale(0.5f);
   public static final V2 ISIZE = SIZE.clone().inv();
+  public static final int MAX_PARTICLES = 5;
+  public static final float PARTICLE_SIZE = 1.8f;
+  public static final float PARTICLE_MIN_ZOOM = 0.0f;
 
 
   /* NESTING */
@@ -51,10 +55,11 @@ public class Tile implements IVisible, IDynamic
 
   /* ATTRIBUTES */
   public final TileGrid grid;
-  public final V2 grid_position; // (col, row)
+  public final V2 grid_position, pixel_position;
   private final Rect pixel_area;
   private EType type;
   private Unit unit = null;
+  private BoundedValue infection = new BoundedValue(1.0f);
 
   /* METHODS */
   
@@ -62,17 +67,23 @@ public class Tile implements IVisible, IDynamic
   public Tile(int row, int col, EType type, TileGrid grid)
   {
     grid_position = new V2(col, row);
-    pixel_area = new Rect(grid_position.clone().scale(SIZE), SIZE);
+    pixel_position = grid_position.clone().scale(SIZE);
+    pixel_area = new Rect(pixel_position, SIZE);
     this.type = type;
     this.grid = grid;
   }
   
   public Tile(ObjectInputStream in, TileGrid grid) throws IOException, ClassNotFoundException
   {
+    // retrieve grid position and deduce pixel position and area
     grid_position = (V2)in.readObject();
-    pixel_area = (Rect)in.readObject();
+    pixel_position = grid_position.clone().scale(SIZE);
+    pixel_area = new Rect(pixel_position, SIZE);
+
     type = (EType)in.readObject();
-    if((Boolean)in.readObject())
+    
+    // read unit if unit is present to be read
+    if((Boolean)in.readObject()) 
       unit = new Unit(this, in);
     
     this.grid = grid;
@@ -89,11 +100,19 @@ public class Tile implements IVisible, IDynamic
     return type;
   }
   
+  public BoundedValue getInfection()
+  {
+    return infection;
+  }
   
   // mutators
   public void setType(EType type)
   {
     this.type = type;
+    if(type == EType.WALL)
+      unit = null;
+    if(type != EType.FLOOR)
+      infection.empty();
   }
 
   public void setUnit(Unit unit)
@@ -104,28 +123,50 @@ public class Tile implements IVisible, IDynamic
   
   public void save(ObjectOutputStream out) throws IOException 
   {
-    // don't write the grid, or we'll end up with a recursion loop!
+    // don't write pixel position or area, as these can be deduced
     out.writeObject(grid_position);
-    out.writeObject(pixel_area);
+
     out.writeObject(type);
+    
+    // write a boolean to signify if unit is present or not
     out.writeObject(unit != null);
     if(unit != null)
       unit.save(out);
+    
+    // don't write the grid, or we'll end up with a recursion loop!
   }
 
   /* OVERRIDES -- IDYNAMIC */
   @Override
   public void render(ICanvas canvas)
   {
-    // draw tile -- setup context
-    canvas.setColour(type == EType.FLOOR ? Colour.RED : Colour.BLUE);
+    // setup context
+    canvas.setColour(type == EType.FLOOR ? Colour.YELLOW : Colour.BLUE);
 
-    // draw tile -- background
+    // background
     canvas.box(pixel_area, true);
     
-    // draw tile -- unit (optional)
+    // unit (optional)
     if (unit != null)
       unit.render(canvas);
+    
+    // infection (optional)
+    canvas.setColour(Colour.GREEN);
+    float zoom = canvas.getCamera().getZoom();
+    if(!infection.isEmpty() && zoom > PARTICLE_MIN_ZOOM)
+    {
+      // probability of a viral particle being present and number present
+      float p_virus = infection.value() * zoom;
+      int n_virus =  (int)(p_virus * (float)MAX_PARTICLES);
+      
+      // more than one virus -- draw always
+      if(n_virus >= 1) for(int i = 0; i < n_virus; i++)
+        renderParticle(canvas);
+      
+      // less than one virus -- draw only sometimes
+      if(Math.random() > p_virus)
+        renderParticle(canvas);
+    }
   }
   
   /* OVERRIDES -- OBJECT */
@@ -148,8 +189,23 @@ public class Tile implements IVisible, IDynamic
       if(result == EUpdateResult.DELETE_ME)
         unit = null;
     }
+
+    // spread infection
     
     // all clear
     return EUpdateResult.CONTINUE;
+  }
+  
+  /* SUBROUTINES */
+  
+  private void renderParticle(ICanvas canvas)
+  {
+    // use pixel_position as a local variable
+    pixel_position.add(
+      (float)(PARTICLE_SIZE+Math.random() * (SIZE.x-2*PARTICLE_SIZE)), 
+      (float)(PARTICLE_SIZE+Math.random() * (SIZE.y-2*PARTICLE_SIZE)));
+    canvas.circle(pixel_position, PARTICLE_SIZE, true);
+    // set it back to its original value afterwards!
+    pixel_position.xy(pixel_area.x, pixel_area.y);
   }
 }
