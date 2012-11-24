@@ -25,6 +25,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import wjd.math.Rect;
@@ -139,7 +140,7 @@ public class TileGrid implements Iterable<Tile>
     return (sub_grid_area == null) ? null : new TileGrid(tiles, sub_grid_area);
   }
 
-  public Iterable<Tile> getNeighbours4(Tile tile, Tile.EType type)
+  public List<Tile> getNeighbours4(Tile tile, Tile.EType type)
   {
     // local variables
     V2 pos = new V2();

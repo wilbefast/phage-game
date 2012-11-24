@@ -19,6 +19,7 @@ package wjd.phage.level;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.List;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IDynamic;
 import wjd.amb.view.Colour;
@@ -28,6 +29,7 @@ import wjd.math.Rect;
 import wjd.math.V2;
 import wjd.phage.unit.Unit;
 import wjd.util.BoundedValue;
+import wjd.util.Timer;
 
 /**
  *
@@ -40,9 +42,18 @@ public class Tile implements IVisible, IDynamic
   public static final V2 SIZE = new V2(32, 32);
   public static final V2 HSIZE = SIZE.clone().scale(0.5f);
   public static final V2 ISIZE = SIZE.clone().inv();
-  public static final int MAX_PARTICLES = 5;
+  
+  public static final int PARTICLE_MAX = 5;
   public static final float PARTICLE_SIZE = 1.8f;
   public static final float PARTICLE_MIN_ZOOM = 0.0f;
+  
+  public static final int INFECT_DISPERSION_PERIOD = 300;   // ms
+  public static final float INFECT_DISPERSION = 0.9f;       // fraction
+  
+  public static final int INFECT_DECAY_PERIOD = 6000;       // ms
+  public static final float INFECT_DECAY = 0.1f;            // fraction
+  
+  public static final float INFECT_MIN = 0.09f;             // fraction
 
 
   /* NESTING */
@@ -60,6 +71,8 @@ public class Tile implements IVisible, IDynamic
   private EType type;
   private Unit unit = null;
   private BoundedValue infection = new BoundedValue(1.0f);
+  private Timer dispersion_timer = new Timer(INFECT_DISPERSION_PERIOD);
+  private Timer decay_timer = new Timer(INFECT_DECAY_PERIOD);
 
   /* METHODS */
   
@@ -81,6 +94,8 @@ public class Tile implements IVisible, IDynamic
     pixel_area = new Rect(pixel_position, SIZE);
 
     type = (EType)in.readObject();
+    
+    infection = (BoundedValue)in.readObject();
     
     // read unit if unit is present to be read
     if((Boolean)in.readObject()) 
@@ -128,6 +143,8 @@ public class Tile implements IVisible, IDynamic
 
     out.writeObject(type);
     
+    out.writeObject(infection);
+  
     // write a boolean to signify if unit is present or not
     out.writeObject(unit != null);
     if(unit != null)
@@ -141,7 +158,7 @@ public class Tile implements IVisible, IDynamic
   public void render(ICanvas canvas)
   {
     // setup context
-    canvas.setColour(type == EType.FLOOR ? Colour.YELLOW : Colour.BLUE);
+    canvas.setColour(type == EType.FLOOR ? Colour.VIOLET : Colour.BLUE);
 
     // background
     canvas.box(pixel_area, true);
@@ -151,20 +168,20 @@ public class Tile implements IVisible, IDynamic
       unit.render(canvas);
     
     // infection (optional)
-    canvas.setColour(Colour.GREEN);
+    canvas.setColour(Colour.BLACK);
     float zoom = canvas.getCamera().getZoom();
     if(!infection.isEmpty() && zoom > PARTICLE_MIN_ZOOM)
     {
       // probability of a viral particle being present and number present
-      float p_virus = infection.value() * zoom;
-      int n_virus =  (int)(p_virus * (float)MAX_PARTICLES);
+      float p_virus = infection.balance() * zoom;
+      int n_virus =  (int)(p_virus * (float)PARTICLE_MAX);
       
       // more than one virus -- draw always
       if(n_virus >= 1) for(int i = 0; i < n_virus; i++)
         renderParticle(canvas);
       
       // less than one virus -- draw only sometimes
-      if(Math.random() > p_virus)
+      else if(Math.random() > p_virus)
         renderParticle(canvas);
     }
   }
@@ -191,6 +208,12 @@ public class Tile implements IVisible, IDynamic
     }
 
     // spread infection
+    if(dispersion_timer.update(t_delta) == EUpdateResult.FINISHED)
+      virusDisperse();
+    
+    // destroy infection
+    if(decay_timer.update(t_delta) == EUpdateResult.FINISHED)
+      virusDecay();
     
     // all clear
     return EUpdateResult.CONTINUE;
@@ -207,5 +230,29 @@ public class Tile implements IVisible, IDynamic
     canvas.circle(pixel_position, PARTICLE_SIZE, true);
     // set it back to its original value afterwards!
     pixel_position.xy(pixel_area.x, pixel_area.y);
+  }
+  
+  private void virusDecay()
+  {
+    // some of the viral particles are destroyed...
+    //infection.tryWithdrawPercent(INFECT_DECAY);
+    if(infection.balance() < INFECT_MIN)
+      infection.empty();
+  }
+  
+  private void virusDisperse()
+  {
+    if(infection.balance() < INFECT_MIN)
+      return;
+    
+    // disperse infection over neighbours
+    List<Tile> neighbours = grid.getNeighbours4(this, EType.FLOOR);
+    float dispersion = infection.tryWithdrawPercent(INFECT_DISPERSION);
+    float dispersion_per_tile = dispersion / neighbours.size();
+    for(Tile t : neighbours)
+      dispersion -= t.getInfection().tryDeposit(dispersion_per_tile);
+    
+    // return whatever is left
+    infection.tryDeposit(dispersion);
   }
 }

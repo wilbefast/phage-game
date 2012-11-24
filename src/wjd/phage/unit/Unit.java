@@ -58,7 +58,7 @@ public class Unit implements IVisible, IDynamic, Serializable
   
   public Unit(Tile tile, ObjectInputStream in) throws IOException, ClassNotFoundException
   {
-    selected = (Boolean)in.readObject();
+    //selected = (Boolean)in.readObject();
     //order = (UnitOrder)in.readObject();
     order = null;
     state = 0;
@@ -136,6 +136,8 @@ public class Unit implements IVisible, IDynamic, Serializable
     /*AUnitState next_state = state.update(this, t_delta);
     if(next_state != null)
       state = next_state;*/
+    
+    current.getInfection().fill();
     
     
     //! IDLE

@@ -19,10 +19,8 @@ package wjd.phage.pathing;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.Stack;
 import wjd.phage.level.Tile;
 import wjd.phage.level.TileGrid;
 
@@ -39,7 +37,7 @@ public class PathSearch implements Runnable
   private final TileGrid grid;
   private final SearchState start;
   private final SearchState end;
-  private final AHeuristic heuristic = AHeuristic.MANHATTAN;
+  private final AHeuristic heuristic = AHeuristic.EUCLIEAN;
   private HashMap<Tile, SearchState> states;
   private Queue<SearchState> open;
   private boolean hasResult = false;
