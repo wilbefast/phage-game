@@ -17,7 +17,6 @@
 package wjd.phage.pathing;
 
 import wjd.math.V2;
-import wjd.phage.level.Tile;
 
 /**
  *
@@ -27,14 +26,14 @@ import wjd.phage.level.Tile;
 abstract class AHeuristic
 {
   /* INTERFACE */
-  public abstract int estimate(Tile start, Tile end);
+  public abstract int estimate(V2 start, V2 end);
 
   /* IMPLEMENTATIONS */
     
   public static final AHeuristic NONE = new AHeuristic()
   {
     @Override
-    public int estimate(Tile start, Tile end)
+    public int estimate(V2 start, V2 end)
     {
       return 0;
     }
@@ -43,19 +42,19 @@ abstract class AHeuristic
   public static final AHeuristic EUCLIEAN = new AHeuristic()
   {
     @Override
-    public int estimate(Tile start, Tile end)
+    public int estimate(V2 start, V2 end)
     {
       return 
-        (int)new V2(start.grid_position, end.grid_position).norm();
+        (int)new V2(start, end).norm();
     }
   };
   
   public static final AHeuristic MANHATTAN = new AHeuristic()
   {
     @Override
-    public int estimate(Tile start, Tile end)
+    public int estimate(V2 start, V2 end)
     {
-      V2 s = start.grid_position, e = end.grid_position;
+      V2 s = start, e = end;
       return (int)(Math.abs(s.x - e.x) + Math.abs(s.y - e.y));
     }
   };

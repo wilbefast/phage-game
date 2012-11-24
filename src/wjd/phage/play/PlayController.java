@@ -26,10 +26,10 @@ import wjd.math.Rect;
 import wjd.math.V2;
 import wjd.phage.level.LevelController;
 import wjd.phage.level.LevelScene;
-import wjd.phage.level.Order;
 import wjd.phage.level.Tile;
 import wjd.phage.level.TileGrid;
-import wjd.phage.level.Unit;
+import wjd.phage.unit.Unit;
+import wjd.phage.unit.UnitOrder;
 
 /**
  *
@@ -90,6 +90,38 @@ public class PlayController extends LevelController
     canvas.setLineWidth(2.0f);
     canvas.setColour(Colour.TEAL);
     canvas.box(selection_box, false);
+    
+    canvas.setCameraActive(true);
+    canvas.setColour(Colour.YELLOW);
+    V2 a = new V2(), b = new V2();
+    for(Unit u : selected_units)
+    {
+      if(u.path == null )
+        continue;
+      a.reset(u.current.grid_position).scale(Tile.SIZE);
+      for(Tile t : u.path)
+      {
+        b.reset(t.grid_position).scale(Tile.SIZE);
+        
+        canvas.line(a, b);
+        
+        a.reset(b);
+      }
+    }
+    canvas.setCameraActive(false);
+  }
+  
+  /* IMPLEMENTS -- IDYNAMIC */
+  
+  @Override
+  public EUpdateResult update(int t_delta)
+  {
+    // update each Tile
+    for(Tile t : level.tilegrid)
+      t.update(t_delta);
+    
+    // always continue
+    return EUpdateResult.CONTINUE;
   }
   
   /* SUBROUTINES */
@@ -100,7 +132,7 @@ public class PlayController extends LevelController
     {
       Tile tile = level.tilegrid.getTilePixel(level.getCamera().getGlobal(position));
       if(tile != null)
-        u.setOrder(new Order(Order.Type.MOVE, tile));
+        u.setOrder(new UnitOrder(tile));
     }
   }
   

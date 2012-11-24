@@ -14,35 +14,38 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package wjd.phage.level;
+package wjd.phage.unit;
 
 /**
  *
  * @author wdyce
  * @since Nov 23, 2012
  */
-public class Order 
+public abstract class AUnitState 
 {
-  /* NESTING */
-  public static enum Type
-  {
-    MOVE
-  }
+  /* INTERFACE */
+  public abstract AUnitState update(Unit target, int t_delta);
   
-  /* ATTRIBUTES */
-  private Type type;
-  public Tile target;
+  /* IMPLEMENTATIONS */
   
-  /* METHODS */
-
-  // constructors
-  public Order(Type type, Tile target)
+  /*public static AUnitState IDLING = new AUnitState()
   {
-    this.type = type;
-    this.target = target;
-  }
+    @Override
+    public AUnitState update(Unit u, int t_delta)
+    {
+      UnitOrder order = u.nextOrder();
+      return (order == null) ? null : order.toState();
+    }
+  };
+  
+  public static AUnitState MOVING = new AUnitState()
+  {
+    @Override
+    public AUnitState update(Unit u, int t_delta)
+    {
+      UnitOrder order = u.nextOrder();
+      return (order == null) ? null : order.toState();
+    }
+  };*/
 
-  // accessors
-
-  // mutators
 }

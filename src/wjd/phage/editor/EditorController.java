@@ -130,4 +130,12 @@ public class EditorController extends LevelController
 
     return EUpdateResult.CONTINUE;
   }
+  
+  /* IMPLEMENTS -- IDYNAMIC */
+  
+  @Override
+  public EUpdateResult update(int t_delta)
+  {
+    return EUpdateResult.CONTINUE;
+  }
 }

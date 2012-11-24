@@ -24,7 +24,7 @@ import wjd.phage.level.Tile;
  * @author wdyce
  * @since 16 Feb, 2012
  */
-class SearchState
+class SearchState implements Comparable<SearchState>
 {
   /* ATTRIBUTES */
   
@@ -53,6 +53,7 @@ class SearchState
     totalCostEstimate = currentCost + search.estimateCost(tile);
   }
 
+  @Override
   public int compareTo(SearchState other)
   {
     int delta = totalCostEstimate - other.totalCostEstimate;

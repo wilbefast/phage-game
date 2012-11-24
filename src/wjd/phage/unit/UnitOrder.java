@@ -14,47 +14,40 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package wjd.phage.editor;
+package wjd.phage.unit;
 
-import wjd.amb.view.Colour;
-import wjd.amb.view.ICanvas;
 import wjd.phage.level.Tile;
-import wjd.phage.unit.Unit;
 
 /**
  *
  * @author wdyce
- * @since Nov 2, 2012
+ * @since Nov 23, 2012
  */
-public class UnitBrush extends ABrush
+public class UnitOrder 
 {
   /* ATTRIBUTES */
-  private boolean erase = false;
+  public Unit owner;
+  public Tile target;
   
   /* METHODS */
-  public UnitBrush()
+  public UnitOrder(Tile target)
   {
-    super(false);
+    this.target = target;
   }
   
-  /* IMPLEMENTS -- IBRUSH */
+  /* INTERFACE */
+  //public abstract AUnitState toState();
+  //public abstract void execute();
   
-  @Override
-  public void paint(Tile target)
+  /* IMPLEMENTATIONS */
+  /*public static class Move extends UnitOrder
   {
-    target.setUnit(erase ? null : new Unit(target));
-  }
 
-  @Override
-  public void changeColour()
-  {
-    erase = !erase;
-  }
-
-  @Override
-  public void render(ICanvas canvas)
-  {
-    canvas.setColour(Colour.BLACK);
-    canvas.circle(coverage.getCentre(), Tile.HSIZE.x, !erase);
-  }
+    @Override
+    public AUnitState toState()
+    {
+      return AUnitState.MOVE;
+    }
+    
+  }*/
 }

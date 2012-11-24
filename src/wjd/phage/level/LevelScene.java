@@ -88,8 +88,7 @@ public class LevelScene extends AScene
   @Override
   public EUpdateResult update(int t_delta)
   {
-    // stay in this Scene if nothing interesting has happened
-    return EUpdateResult.CONTINUE;
+    return ((LevelController)controller).update(t_delta);
   }
   
   @Override

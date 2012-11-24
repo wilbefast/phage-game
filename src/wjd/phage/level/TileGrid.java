@@ -39,7 +39,7 @@ public class TileGrid implements Iterable<Tile>
 {
   /* ATTRIBUTES */
 
-  public Tile[][] tiles;
+  public final Tile[][] tiles;
   private final Rect grid_area;
 
   /* METHODS */
@@ -56,6 +56,21 @@ public class TileGrid implements Iterable<Tile>
     this(new Tile[(int)size.y][(int)size.x], 
          new Rect(V2.ORIGIN, size.clone().dinc()).floor());
   }
+  
+  public TileGrid(File file) throws IOException, ClassNotFoundException
+  {
+    // open file
+    ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
+    
+    // recover size and reallocate matrix
+    grid_area = (Rect)in.readObject();
+    tiles = new Tile[(int)grid_area.h + 1][(int)grid_area.w + 1];
+    
+    // fill matrix with values
+    for (int row = (int) grid_area.y; row <= (int)(grid_area.endy()); row++)
+      for (int col = (int) grid_area.x; col <= (int) (grid_area.endx()); col++)
+        tiles[row][col] = new Tile(in, this);
+  }
 
   // mutators
   /**
@@ -66,7 +81,7 @@ public class TileGrid implements Iterable<Tile>
     // set all tiles as free
     for (int row = (int) grid_area.y; row <= (int)(grid_area.endy()); row++)
       for (int col = (int) grid_area.x; col <= (int) (grid_area.endx()); col++)
-        tiles[row][col] = new Tile(row, col, Tile.EType.FLOOR);
+        tiles[row][col] = new Tile(row, col, Tile.EType.FLOOR, this);
     return this;
   }
 
@@ -158,42 +173,17 @@ public class TileGrid implements Iterable<Tile>
             && grid_pos.y < tiles.length && grid_pos.x < tiles[0].length);
   }
 
-  // load and save
-  public TileGrid load(File file)
-  {
-    try
-    {
-      Object o = (new ObjectInputStream(new FileInputStream(file))).readObject();
-
-      if (o instanceof Tile[][])
-        this.tiles = (Tile[][]) o;
-      else
-        throw new ClassNotFoundException();
-    }
-    catch (FileNotFoundException ex)
-    {
-      Logger.getLogger(LevelScene.class.getName()).log(Level.SEVERE, null, ex);
-    }
-    catch (IOException ex)
-    {
-      Logger.getLogger(LevelScene.class.getName()).log(Level.SEVERE, null, ex);
-    }
-    catch (ClassNotFoundException ex)
-    {
-      Logger.getLogger(LevelScene.class.getName()).log(Level.SEVERE, null, ex);
-    }
-    finally
-    {
-      return this;
-    }
-  }
+  // externalise
 
   public TileGrid save(File file)
   {
     try
     {
       // open specified file and write the object
-      (new ObjectOutputStream(new FileOutputStream(file))).writeObject(tiles);
+      ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file));
+      out.writeObject(grid_area);
+      for(Tile t : this)
+        t.save(out);
     }
     catch (FileNotFoundException ex)
     {

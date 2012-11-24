@@ -16,11 +16,13 @@
  */
 package wjd.phage.pathing;
 
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Stack;
 import wjd.phage.level.Tile;
 import wjd.phage.level.TileGrid;
 
@@ -29,7 +31,7 @@ import wjd.phage.level.TileGrid;
  * @author wdyce
  * @since 16 Feb, 2012
  */
-public abstract class PathSearch implements Runnable
+public class PathSearch implements Runnable
 {
   /* NESTING */
   
@@ -46,10 +48,10 @@ public abstract class PathSearch implements Runnable
   
   // constructors
   
-  public PathSearch(TileGrid grid, Tile start_tile, Tile end_tile)
+  public PathSearch(Tile start_tile, Tile end_tile)
   {
     // initialise final attributes
-    this.grid = grid;
+    this.grid = start_tile.grid;
     this.start = new SearchState(start_tile, this);
     this.end = new SearchState(end_tile, this);
     
@@ -74,10 +76,10 @@ public abstract class PathSearch implements Runnable
   
   int estimateCost(Tile tile)
   {
-    return heuristic.estimate(tile, end.tile);
+    return heuristic.estimate(tile.grid_position, end.tile.grid_position);
   }
   
-  public List<Tile> getResult(TileGrid grid)
+  public Deque<Tile> getPath()
   {
     // if successful, generate path by reading back through tree
     return (hasResult) ? unfurl() : new LinkedList<Tile>();
@@ -138,16 +140,16 @@ public abstract class PathSearch implements Runnable
     }
   }
 
-  private List<Tile> unfurl()
+  private Deque<Tile> unfurl()
   {
-    List<Tile> result = new LinkedList<Tile>();
+    Deque<Tile> result = new LinkedList<Tile>();
 
     // start at the end, trace backwards adding vertices
     SearchState current = end;
     while (current != null)
     {
       // add element to front, in order for list to be in the right order
-      result.add(0, current.tile);
+      result.addFirst(current.tile);
       current = current.previous;
     }
     return result;

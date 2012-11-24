@@ -17,10 +17,14 @@
 package wjd.phage.level;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IController;
+import wjd.amb.control.IDynamic;
 import wjd.amb.control.IInput;
 import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
@@ -31,7 +35,7 @@ import wjd.phage.menus.TitleScene;
  * @author wdyce
  * @since Nov 2, 2012
  */
-public abstract class LevelController implements IController, IVisible
+public abstract class LevelController implements IController, IVisible, IDynamic
 {
   /* CONSTANTS */
   private static final JFileChooser fileChooser = new JFileChooser();
@@ -112,19 +116,43 @@ public abstract class LevelController implements IController, IVisible
         case R_CTRL:
           // save on CONTROL
           if(fileChooser.showSaveDialog(fileChooser) == JFileChooser.APPROVE_OPTION)
-            level.tilegrid.save(fileChooser.getSelectedFile());
+            save(fileChooser.getSelectedFile());
         break;
 
         case L_ALT:
         case R_ALT:
           // load on ALT
           if(fileChooser.showOpenDialog(fileChooser) == JFileChooser.APPROVE_OPTION)
-            level.tilegrid.load(fileChooser.getSelectedFile());
+              load(fileChooser.getSelectedFile());
         break;
       }
     }
     
     // all clear
     return EUpdateResult.CONTINUE;
+  }
+  
+  /* SUBROUTINES */
+  
+  private void save(File file)
+  {
+    level.tilegrid.save(file);
+  }
+  
+  private void load(File file)
+  {
+    TileGrid backup = level.tilegrid;
+    try
+    {
+      level.tilegrid = new TileGrid(file);
+    }
+    catch (IOException ex)
+    {
+      Logger.getLogger(LevelController.class.getName()).log(Level.SEVERE, null, ex);
+    }
+    catch (ClassNotFoundException ex)
+    {
+      Logger.getLogger(LevelController.class.getName()).log(Level.SEVERE, null, ex);
+    }
   }
 }
