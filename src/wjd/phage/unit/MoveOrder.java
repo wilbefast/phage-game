@@ -38,7 +38,8 @@ public class MoveOrder extends AUnitOrder
   public MoveOrder(Unit owner, Tile destination)
   {
     super(owner);
-    path = new PathSearch(owner.tile, destination).getPath();
+    path = new PathSearch((owner.next_tile != null) 
+                        ? owner.next_tile : owner.tile, destination).getPath();
   }
 
   /* IMPLEMENTS -- IVISIBLE */
@@ -63,10 +64,10 @@ public class MoveOrder extends AUnitOrder
   public EUpdateResult update(int t_delta)
   {
     // 1. get a new tile from the path if there is one
-    if(owner.next_tile == null)
+    if(owner.next_tile == null || owner.next_tile == owner.tile)
     {
       if(!path.isEmpty())
-        owner.next_tile = path.pop();
+        owner.next_tile = path.pop(); 
       else
       {
         owner.order = null;
@@ -100,8 +101,8 @@ public class MoveOrder extends AUnitOrder
     {
       owner.tile.unitFinishExit();
       owner.next_tile.unitFinishEnter();
-      owner.tile = owner.next_tile;
       owner.progress.empty();
+      owner.tile = owner.next_tile;
       owner.next_tile = null;
     }
     

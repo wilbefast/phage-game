@@ -139,7 +139,7 @@ public class Tile implements IVisible, IDynamic
   public boolean unitTryStartEnter(Unit supplicant)
   {
     // tile cannot be entered while someone else is present, entering or leaving
-    if(unit != null || unit_outbound != null || unit_inbound != null)
+    if(unit != null || /* unit_outbound != null || */ unit_inbound != null)
       return false;
     
     // the supplicant is now the inbound unit

@@ -83,6 +83,18 @@ public class Unit implements IVisible, IDynamic, Serializable
   @Override
   public void render(ICanvas canvas)
   {    
+    
+    if(selected)
+    {
+      canvas.setColour(Colour.WHITE);
+      canvas.circle(tile.pixel_position, Tile.SIZE.x/2, false);
+      if(next_tile != null)
+      {
+        canvas.setColour(Colour.BLUE);
+        canvas.circle(next_tile.pixel_position, Tile.SIZE.x, false);
+      }
+    }
+    
     canvas.setColour(selected ? Colour.TEAL : Colour.BLACK);
     canvas.circle(position, Tile.SIZE.x/2, true);
   }
@@ -91,7 +103,7 @@ public class Unit implements IVisible, IDynamic, Serializable
 
   @Override
   public EUpdateResult update(int t_delta)
-  {
+  {    
     // execute order
     if(order != null)
       order.update(t_delta);
