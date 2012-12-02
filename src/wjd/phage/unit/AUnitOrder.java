@@ -16,45 +16,22 @@
  */
 package wjd.phage.unit;
 
-import wjd.phage.pathing.PathSearch;
+import wjd.amb.control.IDynamic;
+import wjd.amb.view.IVisible;
 
 /**
  *
  * @author wdyce
  * @since Nov 23, 2012
  */
-public abstract class AUnitState 
+public abstract class AUnitOrder implements IVisible, IDynamic
 {
-  /* INTERFACE */
-  public abstract AUnitState update(Unit target, int t_delta);
+  /* ATTRIBUTES */
+  public Unit owner;
   
-  /* IMPLEMENTATIONS */
-  
-  public static AUnitState IDLING = new AUnitState()
+  /* METHODS */
+  public AUnitOrder(Unit owner)
   {
-    @Override
-    public AUnitState update(Unit u, int t_delta)
-    {
-      // pop an order off the queue
-      UnitOrder order = u.nextOrder();
-      if(order != null)
-      {
-        PathSearch search = new PathSearch(u.getTile(), order.target);
-        
-        
-        return MOVING;
-      }
-      return this;
-    }
-  };
-  
-  public static AUnitState MOVING = new AUnitState()
-  {
-    @Override
-    public AUnitState update(Unit u, int t_delta)
-    {
-      return this;
-    }
-  };
-
+    this.owner = owner;
+  }
 }

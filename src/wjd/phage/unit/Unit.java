@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.Deque;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IDynamic;
 import wjd.amb.view.Colour;
@@ -28,7 +27,6 @@ import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
 import wjd.math.V2;
 import wjd.phage.level.Tile;
-import wjd.phage.pathing.PathSearch;
 import wjd.util.BoundedValue;
 
 /**
@@ -39,16 +37,11 @@ import wjd.util.BoundedValue;
 public class Unit implements IVisible, IDynamic, Serializable
 {
   /* ATTRIBUTES */
-  private Tile tile, destination = null;
-  private V2 position;
-  private BoundedValue progress = new BoundedValue(1.0f);
-  private boolean selected = false;
-  private UnitOrder order = null;
-  
-  private int state = 0;
-  
-  //private AUnitState state = AUnitState.IDLING;
-  private Deque<Tile> path;
+  Tile tile, next_tile = null;
+  V2 position;
+  BoundedValue progress = new BoundedValue(1.0f);
+  public boolean selected = false;
+  AUnitOrder order = null;
   
   /* METHODS */
 
@@ -62,68 +55,15 @@ public class Unit implements IVisible, IDynamic, Serializable
   public Unit(Tile tile, ObjectInputStream in) throws IOException, ClassNotFoundException
   {
     this(tile);
-    
-    //selected = (Boolean)in.readObject();
-    //order = (UnitOrder)in.readObject();
-    order = null;
-    state = 0;
-    path = null;
-  }
-
-  // accessors
-  public boolean isSelected() 
-  { 
-    return selected; 
   }
   
-  public UnitOrder nextOrder()
-  {
-    return order;
-  }
-  
-  public Tile getDestination()
-  {
-    return destination;
-  }
-  
-  Tile getTile()
-  {
-    return tile;
-  }
-
   // mutators
-  public void setSelected(boolean selected)
-  {
-    this.selected = selected;
-  }
   
-  public void setOrder(UnitOrder new_order)
+  public void setOrder(AUnitOrder new_order)
   {
     order = new_order;
-    destination = null;
-    progress.empty();
-    path = null;
-    state = 0;
-  }
-  
-  public void setTile(Tile tile)
-  {
-    // skip if this is already the tile
-    if(this.tile == tile)
-      return;
-    
-    // remove form old tile and place in the new one
-    this.tile.setUnit(null);
-    this.tile = tile;
-    position = tile.pixel_position.clone().add(Tile.HSIZE);
-    
-    // arrived at destination
-    if(destination == tile)
-    {
-      order = null;
-      destination = null;
-      progress.empty();
-    }
+    if(progress.isEmpty())
+      next_tile = null;
   }
   
   public void save(ObjectOutputStream out) throws IOException
@@ -131,29 +71,18 @@ public class Unit implements IVisible, IDynamic, Serializable
     // don't write the tile, or we'll end up with a recursion loop!
   }
   
-  public void renderPath(ICanvas canvas)
+  public void renderOrder(ICanvas canvas)
   {
-    // you can't draw what you don't have
-    if(path == null)
-      return;
-    
-    canvas.setCameraActive(true);
-      canvas.setColour(Colour.YELLOW);
-      V2 start = new V2(), end = new V2();
-      start.reset(position);
-      for(Tile t : path)
-      {
-        end.reset(t.grid_position).scale(Tile.SIZE).add(Tile.HSIZE);
-        canvas.line(start, end);
-        start.reset(end);
-      }
-    canvas.setCameraActive(false);
+    // draw the order the unit is following (eg. its path) where applicable
+    if(order != null)
+      order.render(canvas);
   }
+
   
   /* IMPLEMENTS -- IVISIBLE */
   @Override
   public void render(ICanvas canvas)
-  {
+  {    
     canvas.setColour(selected ? Colour.TEAL : Colour.BLACK);
     canvas.circle(position, Tile.SIZE.x/2, true);
   }
@@ -163,59 +92,16 @@ public class Unit implements IVisible, IDynamic, Serializable
   @Override
   public EUpdateResult update(int t_delta)
   {
-    // pass update to state
-    /*AUnitState next_state = state.update(this, t_delta);
-    if(next_state != null)
-      state = next_state;*/
+    // execute order
+    if(order != null)
+      order.update(t_delta);
     
     // clear up infection
     for(Tile t : tile.grid.getNeighbours(tile, Tile.EType.FLOOR, true))
       t.getInfection().empty();
     
-    //! IDLE
-    if(state == 0 && order != null)
-    {
-      path = new PathSearch(tile, order.target).getPath();
-      state = 1;
-    }
-    
-    //! MOVING
-    else if(state == 1)
-    {
-      // get a new destination
-      if(destination == null)
-      {
-        if(path.isEmpty())
-        {
-          state = 0;
-          path = null;
-        }
-        else
-          destination = path.pop();
-      }
-      else
-      {
-        // move towards destination if it is free
-        if(destination.getUnit() == null)
-        {
-          progress.tryDeposit((float)t_delta/500.0f);
-
-          float p = progress.balance();
-          V2 src = tile.pixel_position, dest = destination.pixel_position;
-          position.x = (1-p)*src.x + p*dest.x + Tile.HSIZE.x;
-          position.y = (1-p)*src.y + p*dest.y + Tile.HSIZE.y;
-
-          /*position = V2.inter(tile.pixel_position, destination.pixel_position,
-                                                   progress.balance());*/
-
-
-          if(progress.isFull())
-            return EUpdateResult.MOVE_ME;
-        }
-      }
-    }
-   
     // All clear
     return EUpdateResult.CONTINUE;
+
   }
 }

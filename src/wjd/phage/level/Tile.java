@@ -50,11 +50,11 @@ public class Tile implements IVisible, IDynamic
   public static final int INFECT_DISPERSION_PERIOD = 300;   // ms
   public static final float INFECT_DISPERSION = 0.9f;       // fraction
   
+  public static final boolean VIRUS_DECAYS = false;
   public static final int INFECT_DECAY_PERIOD = 6000;       // ms
   public static final float INFECT_DECAY = 0.1f;            // fraction
   
   public static final float INFECT_MIN = 0.09f;             // fraction
-
 
   /* NESTING */
   public static enum EType
@@ -107,7 +107,7 @@ public class Tile implements IVisible, IDynamic
   // accessors
   public Unit getUnit()
   {
-    return unit;
+    return (unit != null) ? unit : unit_inbound;
   }
   
   public EType getType()
@@ -129,17 +129,44 @@ public class Tile implements IVisible, IDynamic
     if(type != EType.FLOOR)
       infection.empty();
   }
-
+  
   public void setUnit(Unit new_unit)
   {
-    // Unit must be cleared before it can be replaced
-    if(unit != null && new_unit != null)
-      return;
-    
-    unit = new_unit;
-    if(new_unit != null)
-      new_unit.setTile(this);
+    if(unit == null || new_unit == null)
+      unit = new_unit;
   }
+
+  public boolean unitTryStartEnter(Unit supplicant)
+  {
+    // tile cannot be entered while someone else is present, entering or leaving
+    if(unit != null || unit_outbound != null || unit_inbound != null)
+      return false;
+    
+    // the supplicant is now the inbound unit
+    unit_inbound = supplicant;
+    return true;
+  }
+
+  public void unitFinishEnter()
+  {
+    // the inbound unit is now the present unit
+    unit = unit_inbound;
+    unit_inbound = null;
+  }
+  
+  public void unitStartExit()
+  {
+    // the present unit is now outbound
+    unit_outbound = unit;
+    unit = null;
+  }
+  
+  public void unitFinishExit()
+  {
+    // the outbound unit has completely left the tile
+    unit_outbound = null;
+  }
+
   
   
   public void save(ObjectOutputStream out) throws IOException 
@@ -170,9 +197,11 @@ public class Tile implements IVisible, IDynamic
     if(type != EType.FLOOR)
       canvas.box(pixel_area, true);
     
-    // unit (optional)
+    // units (optional)
     if (unit != null)
       unit.render(canvas);
+    if (unit_inbound != null)
+      unit_inbound.render(canvas);
     
     // infection (optional)
     canvas.setColour(Colour.BLACK);
@@ -212,8 +241,15 @@ public class Tile implements IVisible, IDynamic
       // delete if required
       if(result == EUpdateResult.DELETE_ME)
         unit = null;
-      else if(result == EUpdateResult.MOVE_ME)
-        unit.getDestination().setUnit(unit);
+    }
+    
+    // update the inbound unit if there is one
+    if(unit_inbound != null)
+    {
+      EUpdateResult result = unit_inbound.update(t_delta);
+      // delete if required
+      if(result == EUpdateResult.DELETE_ME)
+        unit_inbound = null;
     }
 
     // spread infection
@@ -221,7 +257,7 @@ public class Tile implements IVisible, IDynamic
       virusDisperse();
     
     // destroy infection
-    if(decay_timer.update(t_delta) == EUpdateResult.FINISHED)
+    if(VIRUS_DECAYS && decay_timer.update(t_delta) == EUpdateResult.FINISHED)
       virusDecay();
     
     // all clear
@@ -244,9 +280,9 @@ public class Tile implements IVisible, IDynamic
   private void virusDecay()
   {
     // some of the viral particles are destroyed...
-    //infection.tryWithdrawPercent(INFECT_DECAY);
-    //if(infection.balance() < INFECT_MIN)
-      //infection.empty();
+    infection.tryWithdrawPercent(INFECT_DECAY);
+    if(infection.balance() < INFECT_MIN)
+      infection.empty();
   }
   
   private void virusDisperse()

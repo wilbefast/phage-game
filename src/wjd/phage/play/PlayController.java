@@ -29,7 +29,8 @@ import wjd.phage.level.LevelScene;
 import wjd.phage.level.Tile;
 import wjd.phage.level.TileGrid;
 import wjd.phage.unit.Unit;
-import wjd.phage.unit.UnitOrder;
+import wjd.phage.unit.AUnitOrder;
+import wjd.phage.unit.MoveOrder;
 
 /**
  *
@@ -89,7 +90,7 @@ public class PlayController extends LevelController
   {
     // render unit paths (debug)
     for(Unit u : selected_units)
-      u.renderPath(canvas);
+      u.renderOrder(canvas);
     
     // render selection box
     canvas.setLineWidth(2.0f);
@@ -128,7 +129,7 @@ public class PlayController extends LevelController
     {
       Tile tile = level.tilegrid.pixelToTile(level.getCamera().getGlobal(position));
       if(tile != null)
-        u.setOrder(new UnitOrder(tile));
+        u.setOrder(new MoveOrder(u, tile));
     }
   }
   
@@ -167,7 +168,7 @@ public class PlayController extends LevelController
   private void deselectAll()
   {
     for(Unit u : selected_units)
-      u.setSelected(false);
+      u.selected = false;
     selected_units.clear();
   }
   
@@ -179,7 +180,7 @@ public class PlayController extends LevelController
     Unit u = t.getUnit();
     if (u != null)
     {
-      u.setSelected(true);
+      u.selected = true;
       selected_units.add(u);
     }
   }
