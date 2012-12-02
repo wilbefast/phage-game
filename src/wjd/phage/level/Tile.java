@@ -44,7 +44,7 @@ public class Tile implements IVisible, IDynamic
   public static final V2 ISIZE = SIZE.clone().inv();
   
   public static final int PARTICLE_MAX = 5;
-  public static final float PARTICLE_SIZE = 1.8f;
+  public static final float PARTICLE_SIZE = 5.0f;
   public static final float PARTICLE_MIN_ZOOM = 0.0f;
   
   public static final int INFECT_DISPERSION_PERIOD = 300;   // ms
@@ -69,7 +69,7 @@ public class Tile implements IVisible, IDynamic
   public final V2 grid_position, pixel_position;
   private final Rect pixel_area;
   private EType type;
-  private Unit unit = null;
+  private Unit unit = null, unit_outbound = null, unit_inbound = null;
   private BoundedValue infection = new BoundedValue(1.0f);
   private Timer dispersion_timer = new Timer(INFECT_DISPERSION_PERIOD);
   private Timer decay_timer = new Timer(INFECT_DECAY_PERIOD);
@@ -255,7 +255,7 @@ public class Tile implements IVisible, IDynamic
       return;
     
     // disperse infection over neighbours
-    List<Tile> neighbours = grid.getNeighbours4(this, EType.FLOOR);
+    List<Tile> neighbours = grid.getNeighbours(this, EType.FLOOR, true);
     float dispersion = infection.tryWithdrawPercent(INFECT_DISPERSION);
     float dispersion_per_tile = dispersion / neighbours.size();
     for(Tile t : neighbours)

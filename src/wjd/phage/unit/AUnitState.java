@@ -16,6 +16,8 @@
  */
 package wjd.phage.unit;
 
+import wjd.phage.pathing.PathSearch;
+
 /**
  *
  * @author wdyce
@@ -28,13 +30,21 @@ public abstract class AUnitState
   
   /* IMPLEMENTATIONS */
   
-  /*public static AUnitState IDLING = new AUnitState()
+  public static AUnitState IDLING = new AUnitState()
   {
     @Override
     public AUnitState update(Unit u, int t_delta)
     {
+      // pop an order off the queue
       UnitOrder order = u.nextOrder();
-      return (order == null) ? null : order.toState();
+      if(order != null)
+      {
+        PathSearch search = new PathSearch(u.getTile(), order.target);
+        
+        
+        return MOVING;
+      }
+      return this;
     }
   };
   
@@ -43,9 +53,8 @@ public abstract class AUnitState
     @Override
     public AUnitState update(Unit u, int t_delta)
     {
-      UnitOrder order = u.nextOrder();
-      return (order == null) ? null : order.toState();
+      return this;
     }
-  };*/
+  };
 
 }

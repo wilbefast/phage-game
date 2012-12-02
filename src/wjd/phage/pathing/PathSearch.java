@@ -29,7 +29,7 @@ import wjd.phage.level.TileGrid;
  * @author wdyce
  * @since 16 Feb, 2012
  */
-public class PathSearch implements Runnable
+public class PathSearch
 {
   /* NESTING */
   
@@ -55,19 +55,15 @@ public class PathSearch implements Runnable
     
     // wrap graph vertices in exploration state objects
     states = new HashMap<Tile, SearchState>();
-    for (Tile tile : grid)
-    {
-      // don't create state and end state twices
-      SearchState state = (tile == start_tile) 
-                          ? start : ((tile == end_tile) 
-                                     ? end : new SearchState(tile, this));
-      // save the states
-      states.put(tile, state);
-    }
+    states.put(start_tile, start);
+    states.put(end_tile, end);
 
     // add the start state to the open set
     open = new PriorityQueue<SearchState>();
     open.add(start);
+    
+    // perform the search
+    hasResult = search();
   }
   
   // accessors
@@ -81,13 +77,6 @@ public class PathSearch implements Runnable
   {
     // if successful, generate path by reading back through tree
     return (hasResult) ? unfurl() : new LinkedList<Tile>();
-  }
-  
-  /* IMPLEMNTS -- RUNNABLE */
-  @Override
-  public void run()
-  {
-    hasResult = search();
   }
   
   /* SUBROUTINES */
@@ -104,37 +93,46 @@ public class PathSearch implements Runnable
         return true;
 
       // try to expand each neighbour
-      for (Tile t : grid.getNeighbours4(x.tile, Tile.EType.FLOOR))
+      for (Tile t : grid.getNeighbours(x.tile, Tile.EType.FLOOR, false))
         expand(x, t);
 
       // remember to close x now that all connections have been expanded
       x.closed = true;
     }
+    
+    // fail!
     return false;
   }
 
-  private void expand(SearchState x, Tile t)
+  private void expand(SearchState src_state, Tile t)
   {
-    SearchState y = states.get(t);
+    SearchState dest_state = states.get(t);
+    
+    // create states as needed
+    if(dest_state == null)
+    {
+      dest_state = new SearchState(t, this);
+      states.put(t, dest_state);
+    }
 
     // closed states are no longer under consideration
-    if (y.closed)
+    if (dest_state.closed)
       return;
 
     // states not yet opened always link back to x
-    if (!open.contains(y))
+    if (!open.contains(dest_state))
     {
       // set cost before adding to heap, or order will be wrong!
-      y.setParent(x);
-      open.add(y);
+      dest_state.setParent(src_state);
+      open.add(dest_state);
     }
     // states already open link back to x only if it's better
-    else if (x.currentCost + 1 < y.currentCost)
+    else if (src_state.currentCost + 1 < dest_state.currentCost)
     {
       // remove, reset cost and replace, or order will be wrong!
-      open.remove(y);
-      y.setParent(x);
-      open.add(y);
+      open.remove(dest_state);
+      dest_state.setParent(src_state);
+      open.add(dest_state);
     }
   }
 

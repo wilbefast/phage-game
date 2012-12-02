@@ -85,6 +85,11 @@ public class Unit implements IVisible, IDynamic, Serializable
   {
     return destination;
   }
+  
+  Tile getTile()
+  {
+    return tile;
+  }
 
   // mutators
   public void setSelected(boolean selected)
@@ -115,6 +120,7 @@ public class Unit implements IVisible, IDynamic, Serializable
     // arrived at destination
     if(destination == tile)
     {
+      order = null;
       destination = null;
       progress.empty();
     }
@@ -134,10 +140,10 @@ public class Unit implements IVisible, IDynamic, Serializable
     canvas.setCameraActive(true);
       canvas.setColour(Colour.YELLOW);
       V2 start = new V2(), end = new V2();
-      start.reset(tile.grid_position).scale(Tile.SIZE);
+      start.reset(position);
       for(Tile t : path)
       {
-        end.reset(t.grid_position).scale(Tile.SIZE);
+        end.reset(t.grid_position).scale(Tile.SIZE).add(Tile.HSIZE);
         canvas.line(start, end);
         start.reset(end);
       }
@@ -163,16 +169,14 @@ public class Unit implements IVisible, IDynamic, Serializable
       state = next_state;*/
     
     // clear up infection
-    for(Tile t : tile.grid.getNeighbours4(tile, Tile.EType.FLOOR))
+    for(Tile t : tile.grid.getNeighbours(tile, Tile.EType.FLOOR, true))
       t.getInfection().empty();
     
     //! IDLE
     if(state == 0 && order != null)
     {
-      PathSearch search = new PathSearch(tile, order.target);
+      path = new PathSearch(tile, order.target).getPath();
       state = 1;
-      search.run();
-      path = search.getPath();
     }
     
     //! MOVING
