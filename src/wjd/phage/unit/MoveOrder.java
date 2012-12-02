@@ -23,6 +23,7 @@ import wjd.amb.view.ICanvas;
 import wjd.math.V2;
 import wjd.phage.level.Tile;
 import wjd.phage.pathing.PathSearch;
+import wjd.util.BoundedValue;
 import wjd.util.Timer;
 
 /**
@@ -33,11 +34,13 @@ import wjd.util.Timer;
 public class MoveOrder extends AUnitOrder
 {
   /* CONSTANTS */
-  private static final int PATH_TIMEOUT_DURATION = 3000; // ms
+  private static final int PATH_TIMEOUT_DURATION = 1000;    // ms
+  private static final int ORDER_TIMEOUT_DURATION = 15000;  // ms
   
   /* ATTRIBUTES */
   private Deque<Tile> path;
   private Timer path_timeout = new Timer(PATH_TIMEOUT_DURATION);
+  private Timer order_timeout = new Timer(ORDER_TIMEOUT_DURATION);
   private Tile destination;
 
   /* METHODS */
@@ -62,6 +65,8 @@ public class MoveOrder extends AUnitOrder
       canvas.line(start, end);
       start.reset(end);
     }
+    end.reset(destination.grid_position).scale(Tile.SIZE).add(Tile.HSIZE);
+    canvas.circle(end, Tile.HSIZE.x, true);
     canvas.setCameraActive(false);
   }
 
@@ -76,8 +81,15 @@ public class MoveOrder extends AUnitOrder
         owner.next_tile = path.pop(); 
       else
       {
-        owner.order = null;
-        return EUpdateResult.FINISHED;
+        // have we arrived at our destination?
+        if(owner.tile == destination)
+        {
+          owner.order = null;
+          return EUpdateResult.FINISHED;
+        }
+        // if not wait a few seconds and then try again
+        wait(t_delta);
+        return EUpdateResult.BLOCKED;
       }
     }
     
@@ -85,35 +97,33 @@ public class MoveOrder extends AUnitOrder
     if(owner.progress.isEmpty())
     {
       // move into a new tile...
-      if(!owner.next_tile.unitTryStartEnter(owner))
+      if(!owner.next_tile.unitStartEnter(owner))
       {
-        //if(path_timeout.update(t_delta) == EUpdateResult.FINISHED)
-          recalculatePath();
+        wait(t_delta);
         return EUpdateResult.BLOCKED;
       }
 
       // ... and out of the current one
-      owner.tile.unitStartExit();
+      owner.tile.setUnit(null);
     }
 
     // 3. gradually move into this newt tile
     owner.progress.tryDeposit((float)t_delta/500.0f);
-    float p = owner.progress.balance();
-    V2 src = owner.tile.pixel_position, dest = owner.next_tile.pixel_position;
-    owner.position.x = (1-p)*src.x + p*dest.x + Tile.HSIZE.x;
-    owner.position.y = (1-p)*src.y + p*dest.y + Tile.HSIZE.y;
-
-    /*position = V2.inter(tile.pixel_position, destination.pixel_position,
-                                             progress.balance());*/
+    owner.position = V2.inter(owner.tile.pixel_position, 
+                              owner.next_tile.pixel_position, 
+                              owner.progress.balance()).add(Tile.HSIZE);
 
     // 4. when entirely inside the new tile, set this to our current tile
     if(owner.progress.isFull())
     {
-      owner.tile.unitFinishExit();
+      // move to the new position
       owner.next_tile.unitFinishEnter();
       owner.progress.empty();
       owner.tile = owner.next_tile;
       owner.next_tile = null;
+      // reset the "boredom" timers
+      path_timeout.empty();
+      order_timeout.empty();
     }
     
     // 5. rinse and repeat
@@ -121,8 +131,25 @@ public class MoveOrder extends AUnitOrder
   }
   
   /* SUBROUTINES */
+  
+  private void wait(int t_delta)
+  {
+    // cancel order after a long wait
+    if(order_timeout.update(t_delta) == EUpdateResult.FINISHED)
+      owner.order = null;
+    // recalculate path after a short wait
+    else if(path_timeout.update(t_delta) == EUpdateResult.FINISHED)
+      recalculatePath();
+  }
+  
   private void recalculatePath()
   {
+    // there is a maximum number of calculations which can be performed
+    if(owner.next_tile != null && owner.progress.isEmpty())
+    {
+      owner.next_tile.unitCancelEnter();
+      owner.next_tile = null;
+    }
     Tile source = (owner.next_tile != null) ? owner.next_tile : owner.tile;
     path = new PathSearch(source, destination).getPath();
   }

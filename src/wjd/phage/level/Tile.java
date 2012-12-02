@@ -69,7 +69,7 @@ public class Tile implements IVisible, IDynamic
   public final V2 grid_position, pixel_position;
   private final Rect pixel_area;
   private EType type;
-  private Unit unit = null, unit_outbound = null, unit_inbound = null;
+  private Unit unit = null, unit_inbound = null;
   private BoundedValue infection = new BoundedValue(1.0f);
   private Timer dispersion_timer = new Timer(INFECT_DISPERSION_PERIOD);
   private Timer decay_timer = new Timer(INFECT_DECAY_PERIOD);
@@ -122,7 +122,7 @@ public class Tile implements IVisible, IDynamic
   
   public boolean isPathable()
   {
-    return (type == EType.FLOOR && unit == null && unit_inbound == null && unit_outbound == null);
+    return (type == EType.FLOOR && unit == null && unit_inbound == null);
   }
   
   // mutators
@@ -141,7 +141,7 @@ public class Tile implements IVisible, IDynamic
       unit = new_unit;
   }
 
-  public boolean unitTryStartEnter(Unit supplicant)
+  public boolean unitStartEnter(Unit supplicant)
   {
     // tile cannot be entered while someone else is present, entering or leaving
     if(unit != null || /* unit_outbound != null || */ unit_inbound != null)
@@ -151,6 +151,11 @@ public class Tile implements IVisible, IDynamic
     unit_inbound = supplicant;
     return true;
   }
+  
+  public void unitCancelEnter()
+  {
+    unit_inbound = null;
+  }
 
   public void unitFinishEnter()
   {
@@ -158,20 +163,6 @@ public class Tile implements IVisible, IDynamic
     unit = unit_inbound;
     unit_inbound = null;
   }
-  
-  public void unitStartExit()
-  {
-    // the present unit is now outbound
-    unit_outbound = unit;
-    unit = null;
-  }
-  
-  public void unitFinishExit()
-  {
-    // the outbound unit has completely left the tile
-    unit_outbound = null;
-  }
-
   
   
   public void save(ObjectOutputStream out) throws IOException 
@@ -195,12 +186,13 @@ public class Tile implements IVisible, IDynamic
   @Override
   public void render(ICanvas canvas)
   {
-    // setup context
-    canvas.setColour(type == EType.FLOOR ? Colour.VIOLET : Colour.BLUE);
-
-    // background
-    if(type != EType.FLOOR)
+    
+    // walls
+    if(type == EType.WALL)
+    {
+      canvas.setColour(Colour.BLUE);
       canvas.box(pixel_area, true);
+    }
     
     // units (optional)
     if (unit != null)
@@ -296,11 +288,12 @@ public class Tile implements IVisible, IDynamic
       return;
     
     // disperse infection over neighbours
-    List<Tile> neighbours = grid.getNeighbours(this, EType.FLOOR, true);
+    List<Tile> neighbours = grid.getNeighbours(this, true);
     float dispersion = infection.tryWithdrawPercent(INFECT_DISPERSION);
     float dispersion_per_tile = dispersion / neighbours.size();
     for(Tile t : neighbours)
-      dispersion -= t.getInfection().tryDeposit(dispersion_per_tile);
+      if(t.type == Tile.EType.FLOOR)
+        dispersion -= t.getInfection().tryDeposit(dispersion_per_tile);
     
     // return whatever is left
     infection.tryDeposit(dispersion);

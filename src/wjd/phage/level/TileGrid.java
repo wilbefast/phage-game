@@ -151,7 +151,7 @@ public class TileGrid implements Iterable<Tile>
     return (sub_grid_area == null) ? null : new TileGrid(tiles, sub_grid_area);
   }
 
-  public List<Tile> getNeighbours(Tile tile, Tile.EType type, boolean diagonals)
+  public List<Tile> getNeighbours(Tile tile, boolean diagonals)
   {
     // local variables
     V2 pos = new V2();
@@ -164,7 +164,7 @@ public class TileGrid implements Iterable<Tile>
     if(diagonals || Math.abs(row + col) == 1) // only the 4 direct neighbours
     {
       neighbour = gridToTile(pos.reset(tile.grid_position).add(col, row));
-      if(neighbour != null && neighbour.getType() == type)
+      if(neighbour != null)
         neighbour_list.add(neighbour);
     }
     

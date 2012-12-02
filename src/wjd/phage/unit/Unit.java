@@ -82,19 +82,7 @@ public class Unit implements IVisible, IDynamic, Serializable
   /* IMPLEMENTS -- IVISIBLE */
   @Override
   public void render(ICanvas canvas)
-  {    
-    
-    if(selected)
-    {
-      canvas.setColour(Colour.WHITE);
-      canvas.circle(tile.pixel_position, Tile.SIZE.x/2, false);
-      if(next_tile != null)
-      {
-        canvas.setColour(Colour.BLUE);
-        canvas.circle(next_tile.pixel_position, Tile.SIZE.x, false);
-      }
-    }
-    
+  {        
     canvas.setColour(selected ? Colour.TEAL : Colour.BLACK);
     canvas.circle(position, Tile.SIZE.x/2, true);
   }
@@ -109,7 +97,7 @@ public class Unit implements IVisible, IDynamic, Serializable
       order.update(t_delta);
     
     // clear up infection
-    for(Tile t : tile.grid.getNeighbours(tile, Tile.EType.FLOOR, true))
+    for(Tile t : tile.grid.getNeighbours(tile, true))
       t.getInfection().empty();
     
     // All clear

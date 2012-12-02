@@ -41,6 +41,7 @@ public class PathSearch
   private HashMap<Tile, SearchState> states;
   private Queue<SearchState> open;
   private boolean hasResult = false;
+  
 
   /* METHODS */
   
@@ -93,8 +94,9 @@ public class PathSearch
         return true;
 
       // try to expand each neighbour
-      for (Tile t : grid.getNeighbours(x.tile, Tile.EType.FLOOR, false))
-        expand(x, t);
+      for (Tile t : grid.getNeighbours(x.tile, false))
+        if(t.isPathable())
+          expand(x, t);
 
       // remember to close x now that all connections have been expanded
       x.closed = true;
@@ -106,10 +108,6 @@ public class PathSearch
 
   private void expand(SearchState src_state, Tile t)
   {
-    // don't expand tiles which cannot be crossed
-    if(!t.isPathable())
-      return;
-    
     SearchState dest_state = states.get(t);
     
     // create states as needed
