@@ -106,6 +106,10 @@ public class PathSearch
 
   private void expand(SearchState src_state, Tile t)
   {
+    // don't expand tiles which cannot be crossed
+    if(!t.isPathable())
+      return;
+    
     SearchState dest_state = states.get(t);
     
     // create states as needed

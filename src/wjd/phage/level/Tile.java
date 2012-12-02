@@ -120,6 +120,11 @@ public class Tile implements IVisible, IDynamic
     return infection;
   }
   
+  public boolean isPathable()
+  {
+    return (type == EType.FLOOR && unit == null && unit_inbound == null && unit_outbound == null);
+  }
+  
   // mutators
   public void setType(EType type)
   {

@@ -23,6 +23,7 @@ import wjd.amb.view.ICanvas;
 import wjd.math.V2;
 import wjd.phage.level.Tile;
 import wjd.phage.pathing.PathSearch;
+import wjd.util.Timer;
 
 /**
  *
@@ -31,15 +32,20 @@ import wjd.phage.pathing.PathSearch;
  */
 public class MoveOrder extends AUnitOrder
 {
+  /* CONSTANTS */
+  private static final int PATH_TIMEOUT_DURATION = 3000; // ms
+  
   /* ATTRIBUTES */
-  private final Deque<Tile> path;
+  private Deque<Tile> path;
+  private Timer path_timeout = new Timer(PATH_TIMEOUT_DURATION);
+  private Tile destination;
 
   /* METHODS */
   public MoveOrder(Unit owner, Tile destination)
   {
     super(owner);
-    path = new PathSearch((owner.next_tile != null) 
-                        ? owner.next_tile : owner.tile, destination).getPath();
+    this.destination = destination;
+    recalculatePath();
   }
 
   /* IMPLEMENTS -- IVISIBLE */
@@ -80,7 +86,11 @@ public class MoveOrder extends AUnitOrder
     {
       // move into a new tile...
       if(!owner.next_tile.unitTryStartEnter(owner))
+      {
+        //if(path_timeout.update(t_delta) == EUpdateResult.FINISHED)
+          recalculatePath();
         return EUpdateResult.BLOCKED;
+      }
 
       // ... and out of the current one
       owner.tile.unitStartExit();
@@ -108,5 +118,12 @@ public class MoveOrder extends AUnitOrder
     
     // 5. rinse and repeat
     return EUpdateResult.CONTINUE;
+  }
+  
+  /* SUBROUTINES */
+  private void recalculatePath()
+  {
+    Tile source = (owner.next_tile != null) ? owner.next_tile : owner.tile;
+    path = new PathSearch(source, destination).getPath();
   }
 }
