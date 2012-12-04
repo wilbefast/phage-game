@@ -16,7 +16,6 @@
  */
 package wjd.phage.pathing;
 
-import wjd.math.V2;
 import wjd.phage.level.Tile;
 
 /**
@@ -34,7 +33,6 @@ class SearchState implements Comparable<SearchState>
   public int currentCost = 0;
   public int totalCostEstimate = 0;
   public boolean closed = false;
-  V2 grid_position;
   
 
   /* METHODS */

@@ -73,6 +73,13 @@ public class Tile implements IVisible, IDynamic
   private BoundedValue infection = new BoundedValue(1.0f);
   private Timer dispersion_timer = new Timer(INFECT_DISPERSION_PERIOD);
   private Timer decay_timer = new Timer(INFECT_DECAY_PERIOD);
+  
+  
+  /* TODO HACK */
+  public boolean explored = false;
+  /* HACK */
+    
+    
 
   /* METHODS */
   
@@ -141,27 +148,31 @@ public class Tile implements IVisible, IDynamic
       unit = new_unit;
   }
 
-  public boolean unitStartEnter(Unit supplicant)
+  public boolean unitStartEnter(Unit u)
   {
     // tile cannot be entered while someone else is present, entering or leaving
-    if(unit != null || /* unit_outbound != null || */ unit_inbound != null)
+    if(unit != null || unit_inbound != null)
       return false;
     
     // the supplicant is now the inbound unit
-    unit_inbound = supplicant;
+    unit_inbound = u;
     return true;
   }
   
-  public void unitCancelEnter()
+  public void unitCancelEnter(Unit u)
   {
-    unit_inbound = null;
+    if(unit_inbound == u)
+      unit_inbound = null;
   }
 
-  public void unitFinishEnter()
+  public void unitFinishEnter(Unit u)
   {
-    // the inbound unit is now the present unit
-    unit = unit_inbound;
-    unit_inbound = null;
+    if(unit_inbound == u)
+    {
+      // the inbound unit is now the present unit
+      unit = unit_inbound;
+      unit_inbound = null;
+    }
   }
   
   
@@ -191,6 +202,11 @@ public class Tile implements IVisible, IDynamic
     if(type == EType.WALL)
     {
       canvas.setColour(Colour.BLUE);
+      canvas.box(pixel_area, true);
+    }
+    else if(explored)
+    {
+      canvas.setColour(Colour.GREEN);
       canvas.box(pixel_area, true);
     }
     

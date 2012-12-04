@@ -23,7 +23,6 @@ import wjd.amb.view.ICanvas;
 import wjd.math.V2;
 import wjd.phage.level.Tile;
 import wjd.phage.pathing.PathSearch;
-import wjd.util.BoundedValue;
 import wjd.util.Timer;
 
 /**
@@ -34,13 +33,15 @@ import wjd.util.Timer;
 public class MoveOrder extends AUnitOrder
 {
   /* CONSTANTS */
-  private static final int PATH_TIMEOUT_DURATION = 1000;    // ms
-  private static final int ORDER_TIMEOUT_DURATION = 15000;  // ms
+  private static final int BLOCKED_TIMEOUT = 1000;    // ms
+  private static final int REPATH_INTERVAL = 3000;    // ms
+  private static final int ORDER_TIMEOUT = 15000;  // ms
   
   /* ATTRIBUTES */
   private Deque<Tile> path;
-  private Timer path_timeout = new Timer(PATH_TIMEOUT_DURATION);
-  private Timer order_timeout = new Timer(ORDER_TIMEOUT_DURATION);
+  private Timer blocked_repath = new Timer(BLOCKED_TIMEOUT);
+  private Timer blocked_cancel = new Timer(ORDER_TIMEOUT);
+  private Timer repath_timer = new Timer(REPATH_INTERVAL);
   private Tile destination;
 
   /* METHODS */
@@ -74,8 +75,12 @@ public class MoveOrder extends AUnitOrder
   @Override
   public EUpdateResult update(int t_delta)
   {
+    // 0. repath periodically in case a better path has freed itself
+    if(repath_timer.update(t_delta) == EUpdateResult.FINISHED)
+      recalculatePath();
+    
     // 1. get a new tile from the path if there is one
-    if(owner.next_tile == null || owner.next_tile == owner.tile)
+    if(owner.next_tile == null)
     {
       if(!path.isEmpty())
         owner.next_tile = path.pop(); 
@@ -117,13 +122,13 @@ public class MoveOrder extends AUnitOrder
     if(owner.progress.isFull())
     {
       // move to the new position
-      owner.next_tile.unitFinishEnter();
+      owner.next_tile.unitFinishEnter(owner);
       owner.progress.empty();
       owner.tile = owner.next_tile;
       owner.next_tile = null;
       // reset the "boredom" timers
-      path_timeout.empty();
-      order_timeout.empty();
+      blocked_repath.empty();
+      blocked_cancel.empty();
     }
     
     // 5. rinse and repeat
@@ -135,22 +140,24 @@ public class MoveOrder extends AUnitOrder
   private void wait(int t_delta)
   {
     // cancel order after a long wait
-    if(order_timeout.update(t_delta) == EUpdateResult.FINISHED)
+    if(blocked_cancel.update(t_delta) == EUpdateResult.FINISHED)
       owner.order = null;
     // recalculate path after a short wait
-    else if(path_timeout.update(t_delta) == EUpdateResult.FINISHED)
+    else if(blocked_repath.update(t_delta) == EUpdateResult.FINISHED)
       recalculatePath();
   }
   
   private void recalculatePath()
   {
-    // there is a maximum number of calculations which can be performed
     if(owner.next_tile != null && owner.progress.isEmpty())
     {
-      owner.next_tile.unitCancelEnter();
+      owner.next_tile.unitCancelEnter(owner);
       owner.next_tile = null;
     }
     Tile source = (owner.next_tile != null) ? owner.next_tile : owner.tile;
     path = new PathSearch(source, destination).getPath();
+    // reset the "boredom" timers
+    blocked_repath.empty();
+    blocked_cancel.empty();
   }
 }

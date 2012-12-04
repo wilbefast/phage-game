@@ -19,6 +19,7 @@ package wjd.phage.pathing;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import wjd.phage.level.Tile;
@@ -38,9 +39,10 @@ public class PathSearch
   private final SearchState start;
   private final SearchState end;
   private final AHeuristic heuristic = AHeuristic.EUCLIEAN;
-  private HashMap<Tile, SearchState> states;
+  private Map<Tile, SearchState> states;
   private Queue<SearchState> open;
   private boolean hasResult = false;
+  private SearchState fallback_plan;
   
 
   /* METHODS */
@@ -51,8 +53,12 @@ public class PathSearch
   {
     // initialise final attributes
     this.grid = start_tile.grid;
+    
     this.start = new SearchState(start_tile, this);
     this.end = new SearchState(end_tile, this);
+
+    fallback_plan = start;
+    start.totalCostEstimate = estimateCost(start_tile);
     
     // wrap graph vertices in exploration state objects
     states = new HashMap<Tile, SearchState>();
@@ -69,15 +75,24 @@ public class PathSearch
   
   // accessors
   
-  int estimateCost(Tile tile)
+  final int estimateCost(Tile tile)
   {
     return heuristic.estimate(tile.grid_position, end.tile.grid_position);
   }
   
   public Deque<Tile> getPath()
   {
-    // if successful, generate path by reading back through tree
-    return (hasResult) ? unfurl() : new LinkedList<Tile>();
+    Deque<Tile> result = new LinkedList<Tile>();
+
+    // start at the end, trace backwards adding vertices
+    SearchState current = hasResult ? end : fallback_plan;
+    while (current != start)
+    {
+      // add element to front, in order for list to be in the right order
+      result.addFirst(current.tile);
+      current = current.previous;
+    }
+    return result;
   }
   
   /* SUBROUTINES */
@@ -100,6 +115,10 @@ public class PathSearch
 
       // remember to close x now that all connections have been expanded
       x.closed = true;
+      
+      // keep the best closed state, just in case the target is inaccessible
+      if(estimateCost(x.tile) < estimateCost(fallback_plan.tile))
+        fallback_plan = x;
     }
     
     // fail!
@@ -118,7 +137,7 @@ public class PathSearch
     }
 
     // closed states are no longer under consideration
-    if (dest_state.closed)
+    else if (dest_state.closed)
       return;
 
     // states not yet opened always link back to x
@@ -129,27 +148,12 @@ public class PathSearch
       open.add(dest_state);
     }
     // states already open link back to x only if it's better
-    else if (src_state.currentCost + 1 < dest_state.currentCost)
+    else if (src_state.currentCost < dest_state.currentCost)
     {
       // remove, reset cost and replace, or order will be wrong!
       open.remove(dest_state);
       dest_state.setParent(src_state);
       open.add(dest_state);
     }
-  }
-
-  private Deque<Tile> unfurl()
-  {
-    Deque<Tile> result = new LinkedList<Tile>();
-
-    // start at the end, trace backwards adding vertices
-    SearchState current = end;
-    while (current != start)
-    {
-      // add element to front, in order for list to be in the right order
-      result.addFirst(current.tile);
-      current = current.previous;
-    }
-    return result;
   }
 }
