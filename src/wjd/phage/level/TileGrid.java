@@ -262,7 +262,7 @@ public class TileGrid implements Iterable<Tile>
     @Override
     public void remove()
     {
-      // do nothing
+      throw new UnsupportedOperationException("remove not supported.");
     }
   }
 
