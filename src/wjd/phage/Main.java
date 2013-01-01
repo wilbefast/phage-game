@@ -16,7 +16,8 @@
  */
 package wjd.phage;
 
-import wjd.amb.AmbitionEngine;
+import wjd.amb.awt.AWTAmbition;
+import wjd.amb.lwjgl.LWJGLAmbition;
 import wjd.math.V2;
 import wjd.phage.menus.TitleScene;
 
@@ -28,6 +29,7 @@ public abstract class Main
 {
   public static void main(String args[])
   {
-    AmbitionEngine.launch("Phage", new V2(640, 480), new TitleScene(), null);
+    LWJGLAmbition.launch("Phage", new V2(640, 480), new TitleScene(), null);
+    //AWTAmbition.launch("Phage", new V2(640, 480), new TitleScene(), null);
   }
 }

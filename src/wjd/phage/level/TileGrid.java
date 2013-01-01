@@ -199,11 +199,11 @@ public class TileGrid implements Iterable<Tile>
     }
     catch (FileNotFoundException ex)
     {
-      Logger.getLogger(LevelScene.class.getName()).log(Level.SEVERE, null, ex);
+      Logger.getLogger(TileGrid.class.getName()).log(Level.SEVERE, null, ex);
     }
     catch (IOException ex)
     {
-      Logger.getLogger(LevelScene.class.getName()).log(Level.SEVERE, null, ex);
+      Logger.getLogger(TileGrid.class.getName()).log(Level.SEVERE, null, ex);
     }
     finally
     {

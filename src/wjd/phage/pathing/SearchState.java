@@ -32,7 +32,7 @@ class SearchState implements Comparable<SearchState>
   public SearchState previous = null;
   public int currentCost = 0;
   public int totalCostEstimate = 0;
-  public boolean closed = false;
+  public boolean opened = false, closed = false;
   
 
   /* METHODS */

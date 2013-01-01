@@ -114,9 +114,9 @@ public class MoveOrder extends AUnitOrder
 
     // 3. gradually move into this newt tile
     owner.progress.tryDeposit((float)t_delta/500.0f);
-    owner.position = V2.inter(owner.tile.pixel_position, 
-                              owner.next_tile.pixel_position, 
-                              owner.progress.balance()).add(Tile.HSIZE);
+    owner.position.inter(owner.tile.pixel_position, 
+                          owner.next_tile.pixel_position, 
+                          owner.progress.balance()).add(Tile.HSIZE);
 
     // 4. when entirely inside the new tile, set this to our current tile
     if(owner.progress.isFull())

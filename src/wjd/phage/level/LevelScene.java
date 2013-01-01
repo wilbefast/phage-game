@@ -18,11 +18,11 @@ package wjd.phage.level;
 
 import wjd.amb.AScene;
 import wjd.amb.control.EUpdateResult;
+import wjd.amb.rts.StrategyCamera;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICamera;
 import wjd.amb.view.ICanvas;
 import wjd.math.V2;
-import wjd.phage.StrategyCamera;
 import wjd.phage.editor.EditorController;
 import wjd.phage.play.PlayController;
 

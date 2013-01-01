@@ -141,10 +141,11 @@ public class PathSearch
       return;
 
     // states not yet opened always link back to x
-    if (!open.contains(dest_state))
+    if(!dest_state.opened)
     {
       // set cost before adding to heap, or order will be wrong!
       dest_state.setParent(src_state);
+      dest_state.opened = true;
       open.add(dest_state);
     }
     // states already open link back to x only if it's better
