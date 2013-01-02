@@ -28,9 +28,8 @@ import wjd.phage.level.LevelController;
 import wjd.phage.level.LevelScene;
 import wjd.phage.level.Tile;
 import wjd.phage.level.TileGrid;
-import wjd.phage.unit.Unit;
-import wjd.phage.unit.AUnitOrder;
 import wjd.phage.unit.MoveOrder;
+import wjd.phage.unit.Unit;
 
 /**
  *
@@ -42,7 +41,6 @@ public class PlayController extends LevelController
   /* ATTRIBUTES */
   private Rect selection_box = new Rect();
   private List<Unit> selected_units = new LinkedList<Unit>();
-  private float infection_amount = 0;
   
   /* METHODS */
 
@@ -96,10 +94,6 @@ public class PlayController extends LevelController
     canvas.setLineWidth(2.0f);
     canvas.setColour(Colour.TEAL);
     canvas.box(selection_box, false);
-    
-    // render GUI
-    canvas.setColour(Colour.BLACK);
-    canvas.text("inf=" + infection_amount, new V2(32, 32));
   }
   
   /* IMPLEMENTS -- IDYNAMIC */
@@ -107,15 +101,9 @@ public class PlayController extends LevelController
   @Override
   public EUpdateResult update(int t_delta)
   {
-    // start counting infection from 0
-    infection_amount = 0;
-    
     // update each Tile
     for(Tile t : level.tilegrid)
-    {
       t.update(t_delta);
-      infection_amount += t.getInfection().balance();
-    }
     
     // always continue
     return EUpdateResult.CONTINUE;

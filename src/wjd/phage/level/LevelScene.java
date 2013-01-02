@@ -33,7 +33,8 @@ import wjd.phage.play.PlayController;
 public class LevelScene extends AScene
 {
   /* CONSTANTS */
-  public static final V2 GRIDSIZE = new V2(64, 64);
+  public static final V2 GRIDSIZE = new V2(84, 84);
+  public static final Colour C_BACKGROUND = new Colour(133, 9, 97); 
     
   /* NESTING */
   public static enum EMode
@@ -101,7 +102,7 @@ public class LevelScene extends AScene
     // find out what cells the camera can see
     canvas.setCamera(camera);
     TileGrid visible = tilegrid.createSubGrid(camera.getView());
-    canvas.setColour(Colour.VIOLET);
+    canvas.setColour(C_BACKGROUND);
     canvas.box(visible.getPixelArea(), true);
 
     // draw each cell relative to the camera

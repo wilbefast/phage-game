@@ -36,6 +36,10 @@ import wjd.util.BoundedValue;
  */
 public class Unit implements IVisible, IDynamic, Serializable
 {
+  /* CONSTANTS */
+  
+  public static final Colour C = new Colour(173, 196, 206);
+  
   /* ATTRIBUTES */
   Tile tile, next_tile = null;
   V2 position;
@@ -83,8 +87,15 @@ public class Unit implements IVisible, IDynamic, Serializable
   @Override
   public void render(ICanvas canvas)
   {        
-    canvas.setColour(selected ? Colour.TEAL : Colour.BLACK);
+    canvas.setColour(C);
     canvas.circle(position, Tile.SIZE.x/2, true);
+    
+    if(selected)
+    {
+      canvas.setLineWidth(3.0f);
+      canvas.setColour(Colour.YELLOW);
+      canvas.circle(position, Tile.SIZE.x/2, false);
+    }
   }
   
   /* IMPLEMENTS -- IDYNAMIC */

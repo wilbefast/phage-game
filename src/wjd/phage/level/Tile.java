@@ -19,7 +19,6 @@ package wjd.phage.level;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IDynamic;
 import wjd.amb.view.Colour;
@@ -28,8 +27,6 @@ import wjd.amb.view.IVisible;
 import wjd.math.Rect;
 import wjd.math.V2;
 import wjd.phage.unit.Unit;
-import wjd.util.BoundedValue;
-import wjd.util.Timer;
 
 /**
  *
@@ -43,18 +40,7 @@ public class Tile implements IVisible, IDynamic
   public static final V2 HSIZE = SIZE.clone().scale(0.5f);
   public static final V2 ISIZE = SIZE.clone().inv();
   
-  public static final int PARTICLE_MAX = 5;
-  public static final float PARTICLE_SIZE = 5.0f;
-  public static final float PARTICLE_MIN_ZOOM = 0.0f;
-  
-  public static final int INFECT_DISPERSION_PERIOD = 300;   // ms
-  public static final float INFECT_DISPERSION = 0.9f;       // fraction
-  
-  public static final boolean VIRUS_DECAYS = false;
-  public static final int INFECT_DECAY_PERIOD = 6000;       // ms
-  public static final float INFECT_DECAY = 0.1f;            // fraction
-  
-  public static final float INFECT_MIN = 0.09f;             // fraction
+  public static final Colour C_WALL = new Colour(130, 33, 54);
 
   /* NESTING */
   public static enum EType
@@ -67,20 +53,11 @@ public class Tile implements IVisible, IDynamic
   /* ATTRIBUTES */
   public final TileGrid grid;
   public final V2 grid_position, pixel_position;
-  private final Rect pixel_area;
+  public final Rect pixel_area;
   private EType type;
   private Unit unit = null, unit_inbound = null;
-  private BoundedValue infection = new BoundedValue(1.0f);
-  private Timer dispersion_timer = new Timer(INFECT_DISPERSION_PERIOD);
-  private Timer decay_timer = new Timer(INFECT_DECAY_PERIOD);
+  private Infection infection = new Infection(this);
   
-  
-  /* TODO HACK */
-  public boolean explored = false;
-  /* HACK */
-    
-    
-
   /* METHODS */
   
   // constructors
@@ -102,7 +79,7 @@ public class Tile implements IVisible, IDynamic
 
     type = (EType)in.readObject();
     
-    infection = (BoundedValue)in.readObject();
+    infection = new Infection(in, this);
     
     // read unit if unit is present to be read
     if((Boolean)in.readObject()) 
@@ -122,17 +99,18 @@ public class Tile implements IVisible, IDynamic
     return type;
   }
   
-  public BoundedValue getInfection()
-  {
-    return infection;
-  }
-  
   public boolean isPathable()
   {
     return (type == EType.FLOOR && unit == null && unit_inbound == null);
   }
   
+  public Infection getInfection()
+  {
+    return infection;
+  }
+  
   // mutators
+  
   public void setType(EType type)
   {
     this.type = type;
@@ -174,8 +152,7 @@ public class Tile implements IVisible, IDynamic
       unit_inbound = null;
     }
   }
-  
-  
+
   public void save(ObjectOutputStream out) throws IOException 
   {
     // don't write pixel position or area, as these can be deduced
@@ -183,7 +160,7 @@ public class Tile implements IVisible, IDynamic
 
     out.writeObject(type);
     
-    out.writeObject(infection);
+    infection.save(out);
   
     // write a boolean to signify if unit is present or not
     out.writeObject(unit != null);
@@ -201,12 +178,7 @@ public class Tile implements IVisible, IDynamic
     // walls
     if(type == EType.WALL)
     {
-      canvas.setColour(Colour.BLUE);
-      canvas.box(pixel_area, true);
-    }
-    else if(explored)
-    {
-      canvas.setColour(Colour.GREEN);
+      canvas.setColour(C_WALL);
       canvas.box(pixel_area, true);
     }
     
@@ -217,22 +189,7 @@ public class Tile implements IVisible, IDynamic
       unit_inbound.render(canvas);
     
     // infection (optional)
-    canvas.setColour(Colour.BLACK);
-    float zoom = canvas.getCamera().getZoom();
-    if(!infection.isEmpty() && zoom > PARTICLE_MIN_ZOOM)
-    {
-      // probability of a viral particle being present and number present
-      float p_virus = infection.balance() * zoom;
-      int n_virus =  (int)(p_virus * (float)PARTICLE_MAX);
-      
-      // more than one virus -- draw always
-      if(n_virus >= 1) for(int i = 0; i < n_virus; i++)
-        renderParticle(canvas);
-      
-      // less than one virus -- draw only sometimes
-      else if(Math.random() > p_virus)
-        renderParticle(canvas);
-    }
+    infection.render(canvas);
   }
   
   /* OVERRIDES -- OBJECT */
@@ -264,54 +221,11 @@ public class Tile implements IVisible, IDynamic
       if(result == EUpdateResult.DELETE_ME)
         unit_inbound = null;
     }
-
-    // spread infection
-    if(dispersion_timer.update(t_delta) == EUpdateResult.FINISHED)
-      virusDisperse();
     
-    // destroy infection
-    if(VIRUS_DECAYS && decay_timer.update(t_delta) == EUpdateResult.FINISHED)
-      virusDecay();
+    // update the infection
+    infection.update(t_delta);
     
     // all clear
     return EUpdateResult.CONTINUE;
-  }
-  
-  /* SUBROUTINES */
-  
-  private void renderParticle(ICanvas canvas)
-  {
-    // use pixel_position as a local variable
-    pixel_position.add(
-      (float)(PARTICLE_SIZE+Math.random() * (SIZE.x-2*PARTICLE_SIZE)), 
-      (float)(PARTICLE_SIZE+Math.random() * (SIZE.y-2*PARTICLE_SIZE)));
-    canvas.circle(pixel_position, PARTICLE_SIZE, true);
-    // set it back to its original value afterwards!
-    pixel_position.xy(pixel_area.x, pixel_area.y);
-  }
-  
-  private void virusDecay()
-  {
-    // some of the viral particles are destroyed...
-    infection.tryWithdrawPercent(INFECT_DECAY);
-    if(infection.balance() < INFECT_MIN)
-      infection.empty();
-  }
-  
-  private void virusDisperse()
-  {
-    if(infection.balance() < INFECT_MIN)
-      return;
-    
-    // disperse infection over neighbours
-    List<Tile> neighbours = grid.getNeighbours(this, true);
-    float dispersion = infection.tryWithdrawPercent(INFECT_DISPERSION);
-    float dispersion_per_tile = dispersion / neighbours.size();
-    for(Tile t : neighbours)
-      if(t.type == Tile.EType.FLOOR)
-        dispersion -= t.getInfection().tryDeposit(dispersion_per_tile);
-    
-    // return whatever is left
-    infection.tryDeposit(dispersion);
   }
 }
