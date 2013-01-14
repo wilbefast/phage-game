@@ -83,7 +83,7 @@ public class Tile implements IVisible, IDynamic
     
     // read unit if unit is present to be read
     if((Boolean)in.readObject()) 
-      unit = new Unit(this, in);
+      unit = Unit.load(this, in);
     
     this.grid = grid;
   }

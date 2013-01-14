@@ -29,7 +29,10 @@ import wjd.phage.unit.Unit;
 public class UnitBrush extends ABrush
 {
   /* ATTRIBUTES */
-  private boolean erase = false;
+  private int type_i = 0;
+  private Unit.Type[] types = Unit.Type.values();
+  
+  
   
   /* METHODS */
   public UnitBrush()
@@ -44,7 +47,7 @@ public class UnitBrush extends ABrush
   {
     // create unit
     if(target.getType() != Tile.EType.WALL)
-      target.setUnit(new Unit(target));
+      target.setUnit(Unit.fromType(types[type_i], target));
   }
   
   @Override
@@ -57,7 +60,7 @@ public class UnitBrush extends ABrush
   @Override
   public void changeColour()
   {
-    // unused
+    type_i = (type_i + 1) % types.length;
   }
   
   /* IMPLEMENTS -- IVISIBLE */

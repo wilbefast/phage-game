@@ -82,10 +82,16 @@ public class EditorController extends LevelController
   @Override
   public EUpdateResult processMouseClick(IInput.MouseClick event)
   {
-    // force "repaint" with current brush
-    if(event.pressed && event.button == IInput.EMouseButton.LEFT)
-      brushes.current().forceRepaint();
+    if(event.pressed)
+    {
+      // force "repaint" with current brush
+      if(event.button == IInput.EMouseButton.LEFT)
+        brushes.current().forceRepaint();
 
+      // change the brush colour
+      else if(event.button == IInput.EMouseButton.MIDDLE)
+        brushes.current().changeColour();
+    }
     // all clear!
     return EUpdateResult.CONTINUE;
   }

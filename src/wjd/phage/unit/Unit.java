@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2012 William James Dyce
+ Copyright (C) 2013 William James Dyce
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,9 +20,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IDynamic;
-import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
 import wjd.math.V2;
@@ -34,11 +32,55 @@ import wjd.util.BoundedValue;
  * @author wdyce
  * @since Nov 1, 2012
  */
-public class Unit implements IVisible, IDynamic, Serializable
+public abstract class Unit implements IVisible, IDynamic, Serializable
 {
-  /* CONSTANTS */
+  /* CLASS NAMESPACE FUNCTIONS */
   
-  public static final Colour C = new Colour(173, 196, 206);
+  public static Unit load(Tile tile,  ObjectInputStream in) 
+  throws IOException, ClassNotFoundException
+  {
+    // create an object of the correct type
+    Unit.Type t = (Unit.Type )in.readObject();
+    return fromType(t, tile);
+  }
+  
+  public static Unit fromType(Unit.Type type, Tile tile)
+  {
+    switch(type)
+    {
+      case MACROPHAGE:
+        return new Macrophage(tile);
+        
+      case CIVILLIAN_CELL:
+        return new CivillianCell(tile);
+        
+      case INFECTED_CELL:
+        return new InfectedCell(tile);
+        
+        
+        // ... etc
+        
+        
+      default:
+        return null;
+    }
+  }
+  
+  
+  /* NESTING */
+  
+  public static enum Type
+  {
+    MACROPHAGE,
+    CIVILLIAN_CELL,
+    INFECTED_CELL,
+    LYMPHOCYTE_B,
+    LYMPHOCYTE_T,
+    LYMPHOCYTE_B_MEMORY,
+    LYMPHOCYTE_T_MEMORY,
+    LYMPHOCYTE_B_EFFECTOR,
+    LYMPHOCYTE_T_EFFECTOR
+  }
   
   /* ATTRIBUTES */
   Tile tile, next_tile = null;
@@ -56,11 +98,6 @@ public class Unit implements IVisible, IDynamic, Serializable
     position = tile.pixel_position.clone().add(Tile.HSIZE);
   }
   
-  public Unit(Tile tile, ObjectInputStream in) throws IOException, ClassNotFoundException
-  {
-    this(tile);
-  }
-  
   // mutators
   
   public void setOrder(AUnitOrder new_order)
@@ -71,48 +108,17 @@ public class Unit implements IVisible, IDynamic, Serializable
   }
   
   public void save(ObjectOutputStream out) throws IOException
-  {
+  {  
+    out.writeObject(getType());
+    
     // don't write the tile, or we'll end up with a recursion loop!
   }
   
-  public void renderOrder(ICanvas canvas)
-  {
-    // draw the order the unit is following (eg. its path) where applicable
-    if(order != null)
-      order.render(canvas);
-  }
-
+  /* INTERFACE */
   
-  /* IMPLEMENTS -- IVISIBLE */
-  @Override
-  public void render(ICanvas canvas)
-  {        
-    canvas.setColour(C);
-    canvas.circle(position, Tile.SIZE.x/2, true);
-    
-    if(selected)
-    {
-      canvas.setLineWidth(3.0f);
-      canvas.setColour(Colour.YELLOW);
-      canvas.circle(position, Tile.SIZE.x/2, false);
-    }
-  }
+  public abstract boolean isControllable();
   
-  /* IMPLEMENTS -- IDYNAMIC */
-
-  @Override
-  public EUpdateResult update(int t_delta)
-  {    
-    // execute order
-    if(order != null)
-      order.update(t_delta);
-    
-    // clear up infection
-    for(Tile t : tile.grid.getNeighbours(tile, true))
-      t.getInfection().empty();
-    
-    // All clear
-    return EUpdateResult.CONTINUE;
-
-  }
+  public abstract void renderOrder(ICanvas canvas);
+  
+  public abstract Type getType();
 }
