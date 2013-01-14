@@ -21,6 +21,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import wjd.amb.control.IDynamic;
+import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
 import wjd.math.V2;
@@ -70,16 +71,23 @@ public abstract class Unit implements IVisible, IDynamic, Serializable
   /* NESTING */
   
   public static enum Type
-  {
-    MACROPHAGE,
-    CIVILLIAN_CELL,
-    INFECTED_CELL,
-    LYMPHOCYTE_B,
-    LYMPHOCYTE_T,
-    LYMPHOCYTE_B_MEMORY,
-    LYMPHOCYTE_T_MEMORY,
-    LYMPHOCYTE_B_EFFECTOR,
-    LYMPHOCYTE_T_EFFECTOR
+  {    
+    MACROPHAGE(Colour.WHITE),
+    CIVILLIAN_CELL(Colour.RED),
+    INFECTED_CELL(Colour.VIOLET),
+    LYMPHOCYTE_B(Colour.GREEN),
+    LYMPHOCYTE_T(Colour.YELLOW),
+    LYMPHOCYTE_B_MEMORY(Colour.GREEN),
+    LYMPHOCYTE_T_MEMORY(Colour.YELLOW),
+    LYMPHOCYTE_B_EFFECTOR(Colour.GREEN),
+    LYMPHOCYTE_T_EFFECTOR(Colour.YELLOW);
+    
+    public final Colour colour;
+    
+    private Type(Colour colour_)
+    {
+      this.colour = colour_;
+    }
   }
   
   /* ATTRIBUTES */
@@ -96,6 +104,25 @@ public abstract class Unit implements IVisible, IDynamic, Serializable
   {
     this.tile = tile;
     position = tile.pixel_position.clone().add(Tile.HSIZE);
+  }
+  
+  // accessors
+  
+  public Unit getReplacement()
+  {
+    // override me
+    return null;
+  }
+  
+  public boolean playerControlled()
+  {
+    // override me
+    return false;
+  }
+  
+  public void renderOverlay(ICanvas canvas)
+  {
+    // override me
   }
   
   // mutators
@@ -115,10 +142,6 @@ public abstract class Unit implements IVisible, IDynamic, Serializable
   }
   
   /* INTERFACE */
-  
-  public abstract boolean isControllable();
-  
-  public abstract void renderOrder(ICanvas canvas);
   
   public abstract Type getType();
 }

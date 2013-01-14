@@ -88,7 +88,7 @@ public class PlayController extends LevelController
   {
     // render unit paths (debug)
     for(Unit u : selected_units)
-      u.renderOrder(canvas);
+      u.renderOverlay(canvas);
     
     // render selection box
     canvas.setLineWidth(2.0f);

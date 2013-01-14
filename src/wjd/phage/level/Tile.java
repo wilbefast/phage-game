@@ -40,7 +40,8 @@ public class Tile implements IVisible, IDynamic
   public static final V2 HSIZE = SIZE.clone().scale(0.5f);
   public static final V2 ISIZE = SIZE.clone().inv();
   
-  public static final Colour C_WALL = new Colour(130, 33, 54);
+  public static final Colour C_WALL = new Colour(97, 0, 21);
+  public static final Colour C_FOG = new Colour(55, 55, 55);
 
   /* NESTING */
   public static enum EType
@@ -57,6 +58,8 @@ public class Tile implements IVisible, IDynamic
   private EType type;
   private Unit unit = null, unit_inbound = null;
   private Infection infection = new Infection(this);
+  private boolean visible = false;
+  private char[] neighbours = { 0, 0, 0, 0 };
   
   /* METHODS */
   
@@ -111,13 +114,68 @@ public class Tile implements IVisible, IDynamic
   
   // mutators
   
+  public void refreshNeighbourHash()
+  {
+    /*Each of the 4 corners is given a seperate hash value between 0 and 4. We
+    only pay attention to the corners if the two adjascent sides are equal to
+    the center:
+
+    |--|    |-x|
+    |X-| == |X-| == 0 (binary 00)
+
+    |x-|    |xx|
+    |X-| == |X-| == 1 (binary 01)
+
+    |--|    |-x|
+    |Xx| == |Xx| == 2 (binary 10)
+
+    |xx|
+    |Xx| == 4 (binary 11)
+
+    Corner are evaluated in this order:
+    0|x-| 1|--| 2|-x| 3|--|
+     |--|  |x-|  |--|  |-x|
+    */
+
+    V2 pos = new V2();
+    
+    for(int d_col = -1, corner = 0; d_col < 2; d_col += 2)
+    for(int d_row = -1; d_row < 2; d_row += 2, corner++)
+    {
+      // reset hash
+      neighbours[corner] = 0;
+      
+      // delta along the vertical axis
+      pos.xy(grid_position.x, grid_position.y + d_row);
+      if(grid.validGridPos(pos) && grid.gridToTile(pos).type == type)
+        neighbours[corner] += 1;
+      
+      // delta along the horizontal axis
+      pos.xy(grid_position.x + d_col, grid_position.y);
+      if(grid.validGridPos(pos) && grid.gridToTile(pos).type == type)
+        neighbours[corner] += 2;
+      
+      // delta along both axes if both sides are of the same type as the center
+      pos.xy(grid_position.x + d_col, grid_position.y + d_row);
+      if(neighbours[corner] == 3 
+      && grid.validGridPos(pos) && grid.gridToTile(pos).type == type)
+        neighbours[corner] = 4;
+    }
+  }
+  
   public void setType(EType type)
   {
+    // reset the type
     this.type = type;
     if(type == EType.WALL)
       unit = null;
     if(type != EType.FLOOR)
       infection.empty();
+    
+    // recalculate the hash
+    Iterable<Tile> n = grid.getNeighbours(this, true);
+    for(Tile t : n)
+      t.refreshNeighbourHash();
   }
   
   public void setUnit(Unit new_unit)
@@ -174,7 +232,6 @@ public class Tile implements IVisible, IDynamic
   @Override
   public void render(ICanvas canvas)
   {
-    
     // walls
     if(type == EType.WALL)
     {
@@ -190,6 +247,13 @@ public class Tile implements IVisible, IDynamic
     
     // infection (optional)
     infection.render(canvas);
+    
+    // black mask
+    if(!visible)
+    {
+      canvas.setColour(C_FOG);
+      canvas.box(pixel_area, false);
+    }
   }
   
   /* OVERRIDES -- OBJECT */
@@ -211,6 +275,9 @@ public class Tile implements IVisible, IDynamic
       // delete if required
       if(result == EUpdateResult.DELETE_ME)
         unit = null;
+      // replace if required
+      if(result == EUpdateResult.REPLACE_ME)
+        unit = unit.getReplacement();
     }
     
     // update the inbound unit if there is one

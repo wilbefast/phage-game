@@ -18,8 +18,10 @@
 package wjd.phage.unit;
 
 import wjd.amb.control.EUpdateResult;
+import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.phage.level.Tile;
+import wjd.util.Timer;
 
 /**
  *
@@ -28,6 +30,10 @@ import wjd.phage.level.Tile;
  */
 public class InfectedCell extends Unit
 {
+  /* ATTRIBUTES */
+  
+  private Timer spawn_virus = new Timer(1500); // 2 times in 3 seconds
+  
   /* METHODS */
   
   // constructors
@@ -37,29 +43,36 @@ public class InfectedCell extends Unit
     super(tile);
   }
   
-  @Override
-  public boolean isControllable()
-  {
-    throw new UnsupportedOperationException("Not supported yet.");
-  }
-
-  @Override
-  public void renderOrder(ICanvas canvas)
-  {
-    throw new UnsupportedOperationException("Not supported yet.");
-  }
-
-  @Override
-  public void render(ICanvas canvas)
-  {
-    throw new UnsupportedOperationException("Not supported yet.");
-  }
+  /* OERRIDES -- IDYNAMIC */
 
   @Override
   public EUpdateResult update(int t_delta)
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    // generate infection periodically
+    if(spawn_virus.update(t_delta) == EUpdateResult.FINISHED)
+      tile.getInfection().fill();
+    
+    return EUpdateResult.CONTINUE;
   }
+  
+  /* OVERRIDES -- IVISIBLE */
+  
+  @Override
+  public void render(ICanvas canvas)
+  {
+    canvas.setColour(Colour.VIOLET);
+    canvas.circle(position, Tile.SIZE.x/2, true);
+  }
+  
+  /* OVERRIDES -- UNIT */
+
+  @Override
+  public void renderOverlay(ICanvas canvas)
+  {
+    // do nothing
+  }
+  
+  /* IMPLEMENTS -- UNIT */
 
   @Override
   public Type getType()

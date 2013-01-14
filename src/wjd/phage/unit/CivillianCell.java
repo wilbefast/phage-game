@@ -18,8 +18,10 @@
 package wjd.phage.unit;
 
 import wjd.amb.control.EUpdateResult;
+import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.phage.level.Tile;
+import wjd.util.BoundedValue;
 
 /**
  *
@@ -28,6 +30,16 @@ import wjd.phage.level.Tile;
  */
 public class CivillianCell extends Unit
 {
+  /* CONSTANTS */
+  
+  public static final float INFECTION_SPEED = 0.002f; 
+                                          // 0.5 seconds if tile is fully infected
+  
+  /* ATTRIBUTES */
+  
+  private BoundedValue infection = new BoundedValue();
+
+  
   /* METHODS */
   
   // constructors
@@ -41,29 +53,36 @@ public class CivillianCell extends Unit
   @Override
   public void render(ICanvas canvas)
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    canvas.setColour(Colour.RED);
+    canvas.circle(position, Tile.SIZE.x/2, true);
   }
 
   @Override
   public EUpdateResult update(int t_delta)
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    // become an infected cell
+    infection.tryDeposit(tile.getInfection().balance() * INFECTION_SPEED * t_delta);
+    if(infection.isFull())
+      return EUpdateResult.REPLACE_ME;
+    
+    return EUpdateResult.CONTINUE;
   }
 
+  /* OVERRIDES -- UNIT */
+
+  @Override
+  public void renderOverlay(ICanvas canvas)
+  {
+    //! TODO
+  }
+  
+  @Override
+  public Unit getReplacement()
+  {
+    return (infection.isFull() ? new InfectedCell(tile) : null);
+  }
   
   /* IMPLEMENTS -- UNIT */
-  
-  @Override
-  public boolean isControllable()
-  {
-    return false;
-  }
-
-  @Override
-  public void renderOrder(ICanvas canvas)
-  {
-    // not applicable
-  }
   
   @Override
   public Type getType()

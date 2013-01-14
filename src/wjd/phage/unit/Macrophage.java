@@ -29,7 +29,8 @@ import wjd.phage.level.Tile;
 public class Macrophage extends Unit
 {
   /* CONSTANTS */
-  public static final Colour C = new Colour(173, 196, 206);
+  
+  public static final float VIRUS_EAT_SPEED = 0.002f;
   
   /* METHODS */
   
@@ -45,7 +46,7 @@ public class Macrophage extends Unit
   @Override
   public void render(ICanvas canvas)
   {        
-    canvas.setColour(C);
+    canvas.setColour(Colour.WHITE);
     canvas.circle(position, Tile.SIZE.x/2, true);
     
     if(selected)
@@ -65,29 +66,31 @@ public class Macrophage extends Unit
     if(order != null)
       order.update(t_delta);
     
-    // clear up infection
-    for(Tile t : tile.grid.getNeighbours(tile, true))
-      t.getInfection().empty();
+    // clear up infection if not moving
+    else for(Tile t : tile.grid.getNeighbours(tile, true))
+      t.getInfection().tryWithdraw(t_delta * VIRUS_EAT_SPEED);
     
     // All clear
     return EUpdateResult.CONTINUE;
   }
 
-  /* IMPLEMENTS -- UNIT */
+  /* OVERRIDES -- UNIT */
   
   @Override
-  public boolean isControllable()
+  public boolean playerControlled()
   {
     return true;
   }
   
   @Override
-  public void renderOrder(ICanvas canvas)
+  public void renderOverlay(ICanvas canvas)
   {
     // draw the order the unit is following (eg. its path) where applicable
     if(order != null)
       order.render(canvas);
   }
+  
+  /* IMPLEMENTS -- UNIT */
 
   @Override
   public Type getType()

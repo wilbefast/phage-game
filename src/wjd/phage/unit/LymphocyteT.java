@@ -39,13 +39,13 @@ public class LymphocyteT extends Unit
   
   
   @Override
-  public boolean isControllable()
+  public boolean playerControlled()
   {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void renderOrder(ICanvas canvas)
+  public void renderOverlay(ICanvas canvas)
   {
     throw new UnsupportedOperationException("Not supported yet.");
   }

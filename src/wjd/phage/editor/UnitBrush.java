@@ -68,7 +68,7 @@ public class UnitBrush extends ABrush
   @Override
   public void render(ICanvas canvas)
   {
-    canvas.setColour(Colour.BLACK);
+    canvas.setColour(types[type_i].colour);
     canvas.circle(coverage.getCentre(), Tile.HSIZE.x, false);
   }
 }
