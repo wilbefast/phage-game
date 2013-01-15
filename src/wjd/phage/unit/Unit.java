@@ -24,6 +24,7 @@ import wjd.amb.control.IDynamic;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
+import wjd.math.Circle;
 import wjd.math.V2;
 import wjd.phage.level.Tile;
 import wjd.util.BoundedValue;
@@ -35,6 +36,10 @@ import wjd.util.BoundedValue;
  */
 public abstract class Unit implements IVisible, IDynamic, Serializable
 {
+  /* CONSTANTS */
+  
+  public static final float DEFAULT_MOVE_SPEED = 0.002f;
+  
   /* CLASS NAMESPACE FUNCTIONS */
   
   public static Unit load(Tile tile,  ObjectInputStream in) 
@@ -107,6 +112,18 @@ public abstract class Unit implements IVisible, IDynamic, Serializable
   }
   
   // accessors
+  
+  public float getMoveSpeed()
+  {
+    // override me
+    return DEFAULT_MOVE_SPEED;
+  }
+  
+  public Circle getSight()
+  {
+    // overrides me
+    return null;
+  }
   
   public Unit getReplacement()
   {

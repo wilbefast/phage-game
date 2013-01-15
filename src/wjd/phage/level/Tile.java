@@ -192,15 +192,8 @@ public class Tile implements IVisible, IDynamic
       
       // delta along the vertical axis
       pos.xy(grid_position.x, grid_position.y + d_row);
-      try
-      {
       if(grid.validGridPos(pos) && grid.gridToTile(pos).terrain == terrain)
         terrain_neighbours[corner] += 1;
-      }
-      catch(Exception e)
-      {
-        System.out.println("bink");
-      }
       
       // delta along the horizontal axis
       pos.xy(grid_position.x + d_col, grid_position.y);
@@ -293,11 +286,13 @@ public class Tile implements IVisible, IDynamic
     infection.render(canvas);
     
     // black mask
-    canvas.setColour(C_FOG);
-    canvas.text(""+(int)visibility_neighbours, pixel_position);
+    
+    
     if(visibility != EVisibility.VISIBLE)
     {
-      //canvas.box(pixel_area, false);
+      //canvas.text(""+(int)visibility_neighbours, pixel_position);
+      canvas.setColour(C_FOG);
+      canvas.box(pixel_area, false);
     }
   }
   

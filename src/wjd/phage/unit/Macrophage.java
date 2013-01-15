@@ -19,6 +19,7 @@ package wjd.phage.unit;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
+import wjd.math.Circle;
 import wjd.phage.level.Tile;
 
 /**
@@ -29,8 +30,11 @@ import wjd.phage.level.Tile;
 public class Macrophage extends Unit
 {
   /* CONSTANTS */
-  
   public static final float VIRUS_EAT_SPEED = 0.002f;
+  public static final float SIGHT_RADIUS = 500.0f;
+  
+  /* ATTRIBUTES */
+  private Circle sight = new Circle(500.0f);
   
   /* METHODS */
   
@@ -62,6 +66,9 @@ public class Macrophage extends Unit
   @Override
   public EUpdateResult update(int t_delta)
   {    
+    // move sight
+    sight.setCentre(position);
+    
     // execute order
     if(order != null)
       return order.update(t_delta);
@@ -75,6 +82,12 @@ public class Macrophage extends Unit
   }
 
   /* OVERRIDES -- UNIT */
+  
+  @Override
+  public Circle getSight()
+  {
+    return sight;
+  }
   
   @Override
   public boolean playerControlled()

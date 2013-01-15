@@ -110,7 +110,7 @@ public class MoveOrder extends AUnitOrder
     }
 
     // 3. gradually move into this newt tile
-    owner.progress.tryDeposit((float)t_delta/500.0f);
+    owner.progress.tryDeposit((float)t_delta * owner.getMoveSpeed());
     owner.position.inter(owner.tile.pixel_position, 
                           owner.next_tile.pixel_position, 
                           owner.progress.balance()).add(Tile.HSIZE);

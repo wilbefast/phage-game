@@ -30,6 +30,7 @@ import wjd.phage.level.Tile;
 import wjd.phage.level.TileGrid;
 import wjd.phage.unit.MoveOrder;
 import wjd.phage.unit.Unit;
+import wjd.util.Timer;
 
 /**
  *
@@ -41,6 +42,7 @@ public class PlayController extends LevelController
   /* ATTRIBUTES */
   private Rect selection_box = new Rect();
   private List<Unit> selected_units = new LinkedList<Unit>();
+  private Timer fog_timer = new Timer(1500);
   
   /* METHODS */
 
@@ -101,6 +103,10 @@ public class PlayController extends LevelController
   @Override
   public EUpdateResult update(int t_delta)
   {
+    // refresh fog-of-war periodically
+    if(fog_timer.update(t_delta) == EUpdateResult.FINISHED)
+      this.level.fog.recalculate();
+        
     // update each Tile
     for(Tile t : level.tilegrid)
       t.update(t_delta);

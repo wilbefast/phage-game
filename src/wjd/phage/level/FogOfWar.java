@@ -17,9 +17,12 @@
 
 package wjd.phage.level;
 
+import java.util.LinkedList;
+import java.util.List;
 import wjd.math.Circle;
 import wjd.math.M;
 import wjd.math.V2;
+import wjd.phage.unit.Unit;
 
 /**
  *
@@ -31,6 +34,7 @@ public class FogOfWar
   /* ATTRIBUTES */
   public TileGrid grid;
   private Circle tileFlare = new Circle();
+  private List<Circle> flares = new LinkedList<Circle>();
   
   /* METHODS */
   
@@ -43,20 +47,45 @@ public class FogOfWar
   
   // accessors
   
+  public void recalculate()
+  {
+    flares.clear();
+    
+    for(Tile t : grid)
+    {
+      // shroud everything
+      t.setVisibility(Tile.EVisibility.UNSEEN);
+      
+      // build a list of units that can see
+      Unit u = t.getUnit();
+      if(u == null) 
+        continue;
+      Circle f = u.getSight();
+      if(f == null) 
+        continue;
+      flares.add(f);
+    }
+    
+    // reveal areas that are in sight
+    for(Circle f : flares)
+      reveal(f);
+      
+  }
+  
   public void reveal(Circle flare)
   {
     
-    tileFlare.reset(flare).mult(Tile.ISIZE);
+    tileFlare.reset(flare).mult(Tile.ISIZE).centre.floor();
 
     //"defog" those part of the view mask that are in view
     castLightV(-1, 0, -1, 0, tileFlare.centre); //NNW
-    castLightV(0, 1, -1, 0, tileFlare.centre); //NNE
-    castLightH(-1, 0, 1, 0, tileFlare.centre); //NEE
-    castLightH(0, 1, 1, 0, tileFlare.centre); //SEE
+    //castLightV(0, 1, -1, 0, tileFlare.centre); //NNE
+    //castLightH(-1, 0, 1, 0, tileFlare.centre); //NEE
+    //castLightH(0, 1, 1, 0, tileFlare.centre); //SEE
     castLightV(0, 1, 1, 0, tileFlare.centre); //SSE
-    castLightV(-1, 0, 1, 0, tileFlare.centre); //SSW
+    /*castLightV(-1, 0, 1, 0, tileFlare.centre); //SSW
     castLightH(0, 1, -1, 0, tileFlare.centre); //SWW
-    castLightH(-1, 0, -1, 0, tileFlare.centre); //NWW
+    castLightH(-1, 0, -1, 0, tileFlare.centre); //NWW*/
   }
   
   /* SUBROUTINES */
@@ -233,59 +262,4 @@ public class FogOfWar
       i++;
     }
   }
-
-
-  //Cast light, iterating y across x
-  /*void castLightH(float slopeA, float slopeB, int side, int width, sf::Vector2i start)
-  {
-      if(Controller::getLevel()->getPathing_cell(start.y,start.x) >= Pathing::WALL)
-          return;
-
-      float minSlope = min(slopeA,slopeB), maxSlope = max(slopeA,slopeB);
-      bool inBlock = false;
-
-      for(int i = 0, x = start.x; inView(x,start.y) && !inBlock; x+=side)
-      {
-          int first_y = start.y + minSlope*i - width;
-          inBlock = (Controller::getLevel()->getPathing_cell(first_y,x)
-              == Pathing::WALL);
-
-          int free_cells = 0;
-          for(int y = first_y; y <= start.y + maxSlope*i; y++)
-          {
-
-              if(inView(x,y))
-              {
-                  view_mask[y][x] = VISIBLE;
-
-                  if(Controller::getLevel()->getPathing_cell(y,x) == Pathing::WALL)
-                  {
-                      if(!inBlock && y-1 >= first_y)
-                      {
-                          sf::Vector2i newStart(x,y-1);
-                          float newSlope = side*((float)newStart.y-start.y)
-                              /((float)newStart.x-start.x);
-                          castLightH(min(minSlope,maxSlope),newSlope,side,max(0,free_cells-1),newStart);
-                          inBlock = true;
-                      }
-                      free_cells = 0;
-                  }
-                  else
-                  {
-                      if(inBlock)
-                      {
-                          float newSlope = -side*((float)start.y-y)/((float)x-start.x);
-                          minSlope = newSlope;
-                          inBlock = false;
-                          width = 0;
-                      }
-                      free_cells++;
-                  }
-
-              }
-          }
-          i++;
-      }
-  }*/
-
 }
