@@ -93,9 +93,9 @@ public class Macrophage extends Unit
   /* IMPLEMENTS -- UNIT */
 
   @Override
-  public Type getType()
+  public EType getType()
   {
-    return Type.MACROPHAGE;
+    return EType.MACROPHAGE;
   }
   
 }

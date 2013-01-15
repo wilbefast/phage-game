@@ -24,7 +24,9 @@ import wjd.amb.control.IDynamic;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
+import wjd.math.Circle;
 import wjd.math.V2;
+import wjd.phage.level.FogOfWar;
 import wjd.phage.level.Tile;
 import wjd.util.BoundedValue;
 
@@ -41,11 +43,11 @@ public abstract class Unit implements IVisible, IDynamic, Serializable
   throws IOException, ClassNotFoundException
   {
     // create an object of the correct type
-    Unit.Type t = (Unit.Type )in.readObject();
+    Unit.EType t = (Unit.EType )in.readObject();
     return fromType(t, tile);
   }
   
-  public static Unit fromType(Unit.Type type, Tile tile)
+  public static Unit fromType(Unit.EType type, Tile tile)
   {
     switch(type)
     {
@@ -70,7 +72,7 @@ public abstract class Unit implements IVisible, IDynamic, Serializable
   
   /* NESTING */
   
-  public static enum Type
+  public static enum EType
   {    
     MACROPHAGE(Colour.WHITE),
     CIVILLIAN_CELL(Colour.RED),
@@ -84,7 +86,7 @@ public abstract class Unit implements IVisible, IDynamic, Serializable
     
     public final Colour colour;
     
-    private Type(Colour colour_)
+    private EType(Colour colour_)
     {
       this.colour = colour_;
     }
@@ -99,11 +101,17 @@ public abstract class Unit implements IVisible, IDynamic, Serializable
   
   /* METHODS */
 
+  static FogOfWar f = new FogOfWar(null);
+  
   // constructors
   public Unit(Tile tile)
   {
+    f.grid = tile.grid;
+    
     this.tile = tile;
     position = tile.pixel_position.clone().add(Tile.HSIZE);
+    
+    f.reveal(new Circle(position, 500.0f));
   }
   
   // accessors
@@ -143,5 +151,5 @@ public abstract class Unit implements IVisible, IDynamic, Serializable
   
   /* INTERFACE */
   
-  public abstract Type getType();
+  public abstract EType getType();
 }

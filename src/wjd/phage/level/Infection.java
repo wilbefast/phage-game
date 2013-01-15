@@ -183,7 +183,7 @@ public class Infection extends BoundedValue implements IDynamic, IVisible
     float dispersion = tryWithdrawPercent(DISPERSION_SPEED);
     float dispersion_per_tile = dispersion / neighbours.size();
     for(Tile t : neighbours)
-      if(t.getType() == Tile.EType.FLOOR)
+      if(t.getType() == Tile.ETerrain.FLOOR)
         dispersion -= t.getInfection().tryDeposit(dispersion_per_tile);
     
     // return whatever is left

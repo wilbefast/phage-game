@@ -87,7 +87,7 @@ public class TileGrid implements Iterable<Tile>
     // set all tiles as free
     for (int row = (int) grid_area.y; row <= (int)(grid_area.endy()); row++)
       for (int col = (int) grid_area.x; col <= (int) (grid_area.endx()); col++)
-        tiles[row][col] = new Tile(row, col, Tile.EType.FLOOR, this);
+        tiles[row][col] = new Tile(row, col, Tile.ETerrain.FLOOR, this);
     return this;
   }
 

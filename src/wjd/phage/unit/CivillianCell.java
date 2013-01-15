@@ -85,9 +85,9 @@ public class CivillianCell extends Unit
   /* IMPLEMENTS -- UNIT */
   
   @Override
-  public Type getType()
+  public EType getType()
   {
-    return Type.CIVILLIAN_CELL;
+    return EType.CIVILLIAN_CELL;
   }
 
 }

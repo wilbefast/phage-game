@@ -40,7 +40,7 @@ public class InfectionBrush extends ABrush
   @Override
   public void paint(Tile target)
   {
-    if(target.getType() == Tile.EType.FLOOR)
+    if(target.getType() == Tile.ETerrain.FLOOR)
       target.getInfection().tryDeposit(PAINT_SPEED);
   }
   

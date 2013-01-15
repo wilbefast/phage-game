@@ -40,13 +40,13 @@ public class TerrainBrush extends ABrush
   @Override
   public void paint(Tile target)
   {
-    target.setType(Tile.EType.WALL);
+    target.setTerrain(Tile.ETerrain.WALL);
   }
   
   @Override
   public void erase(Tile target)
   {
-    target.setType(Tile.EType.FLOOR);
+    target.setTerrain(Tile.ETerrain.FLOOR);
   }
 
   @Override

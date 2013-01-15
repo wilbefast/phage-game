@@ -63,7 +63,7 @@ public class LymphocyteT extends Unit
   }
 
   @Override
-  public Type getType()
+  public EType getType()
   {
     throw new UnsupportedOperationException("Not supported yet.");
   }

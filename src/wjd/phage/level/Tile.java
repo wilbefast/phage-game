@@ -44,33 +44,34 @@ public class Tile implements IVisible, IDynamic
   public static final Colour C_FOG = new Colour(55, 55, 55);
 
   /* NESTING */
-  public static enum EType
-  {
-
-    FLOOR,
-    WALL
-  }
+  public static enum ETerrain { FLOOR, WALL }
+  public static enum EVisibility { UNEXPLORED, UNSEEN, VISIBLE }
 
   /* ATTRIBUTES */
   public final TileGrid grid;
   public final V2 grid_position, pixel_position;
   public final Rect pixel_area;
-  private EType type;
+  
   private Unit unit = null, unit_inbound = null;
   private Infection infection = new Infection(this);
-  private boolean visible = false;
-  private char[] neighbours = { 0, 0, 0, 0 };
+  
+  // terrain type and type neighbourhood
+  private ETerrain terrain;
+  private byte[] terrain_neighbours = { 0, 0, 0, 0 };
+  // visibility type and type neighbourhood
+  private EVisibility visibility;
+  private byte visibility_neighbours = 0;
   
   /* METHODS */
   
   // constructors
-  public Tile(int row, int col, EType type, TileGrid grid)
+  public Tile(int row, int col, ETerrain terrain_, TileGrid grid_)
   {
     grid_position = new V2(col, row);
     pixel_position = grid_position.clone().scale(SIZE);
     pixel_area = new Rect(pixel_position, SIZE);
-    this.type = type;
-    this.grid = grid;
+    this.terrain = terrain_;
+    this.grid = grid_;
   }
   
   public Tile(ObjectInputStream in, TileGrid grid) throws IOException, ClassNotFoundException
@@ -80,7 +81,7 @@ public class Tile implements IVisible, IDynamic
     pixel_position = grid_position.clone().scale(SIZE);
     pixel_area = new Rect(pixel_position, SIZE);
 
-    type = (EType)in.readObject();
+    setTerrain((ETerrain)in.readObject());
     
     infection = new Infection(in, this);
     
@@ -97,14 +98,14 @@ public class Tile implements IVisible, IDynamic
     return (unit != null) ? unit : unit_inbound;
   }
   
-  public EType getType()
+  public ETerrain getType()
   {
-    return type;
+    return terrain;
   }
   
   public boolean isPathable()
   {
-    return (type == EType.FLOOR && unit == null && unit_inbound == null);
+    return (terrain == ETerrain.FLOOR && unit == null && unit_inbound == null);
   }
   
   public Infection getInfection()
@@ -114,9 +115,51 @@ public class Tile implements IVisible, IDynamic
   
   // mutators
   
-  public void refreshNeighbourHash()
+  public void refreshVisibilityNeighbours()
   {
-    /*Each of the 4 corners is given a seperate hash value between 0 and 4. We
+   // We'll only consider the 4 sides of the Tile and whether they visible too
+   
+   visibility_neighbours = 0;
+   V2 pos = new V2().reset(grid_position);
+    
+    /*  -x-
+        -X- = 1 (binary 0001)
+        ---                     */
+    
+    pos.y--;
+    if(grid.validGridPos(pos) && grid.gridToTile(pos).visibility == visibility)
+      visibility_neighbours += 1;
+      
+    /*  ---
+        -Xx = 2 (binary 0010)
+        ---                     */
+    
+    pos.x++; pos.y++;
+    if(grid.validGridPos(pos) && grid.gridToTile(pos).visibility == visibility)
+      visibility_neighbours += 2;
+    
+    /*  ---
+        -X- = 4 (binary 0100)
+        -x-                     */
+    
+    pos.x--; pos.y++;
+    if(grid.validGridPos(pos) && grid.gridToTile(pos).visibility == visibility)
+      visibility_neighbours += 4;
+    
+    /*  ---
+        xX- = 8 (binary 1000)
+        ---                     */
+    
+    pos.x--; pos.y--;
+    if(grid.validGridPos(pos) && grid.gridToTile(pos).visibility == visibility)
+      visibility_neighbours += 8;
+
+   
+  }
+  
+  public void refreshTerrainNeighbours()
+  {
+    /* Each of the 4 corners is given a seperate hash value between 0 and 4. We
     only pay attention to the corners if the two adjascent sides are equal to
     the center:
 
@@ -143,48 +186,56 @@ public class Tile implements IVisible, IDynamic
     for(int d_row = -1; d_row < 2; d_row += 2, corner++)
     {
       // reset hash
-      neighbours[corner] = 0;
+      terrain_neighbours[corner] = 0;
       
       // delta along the vertical axis
       pos.xy(grid_position.x, grid_position.y + d_row);
-      if(grid.validGridPos(pos) && grid.gridToTile(pos).type == type)
-        neighbours[corner] += 1;
+      if(grid.validGridPos(pos) && grid.gridToTile(pos).terrain == terrain)
+        terrain_neighbours[corner] += 1;
       
       // delta along the horizontal axis
       pos.xy(grid_position.x + d_col, grid_position.y);
-      if(grid.validGridPos(pos) && grid.gridToTile(pos).type == type)
-        neighbours[corner] += 2;
+      if(grid.validGridPos(pos) && grid.gridToTile(pos).terrain == terrain)
+        terrain_neighbours[corner] += 2;
       
       // delta along both axes if both sides are of the same type as the center
       pos.xy(grid_position.x + d_col, grid_position.y + d_row);
-      if(neighbours[corner] == 3 
-      && grid.validGridPos(pos) && grid.gridToTile(pos).type == type)
-        neighbours[corner] = 4;
+      if(terrain_neighbours[corner] == 3 
+      && grid.validGridPos(pos) && grid.gridToTile(pos).terrain == terrain)
+        terrain_neighbours[corner] = 4;
     }
   }
   
-  public void setType(EType type)
+  public final void setTerrain(ETerrain terrain_)
   {
     // reset the type
-    this.type = type;
-    if(type == EType.WALL)
+    this.terrain = terrain_;
+    if(terrain_ == ETerrain.WALL)
       unit = null;
-    if(type != EType.FLOOR)
+    if(terrain_ != ETerrain.FLOOR)
       infection.empty();
     
     // recalculate the hash
     Iterable<Tile> n = grid.getNeighbours(this, true);
     for(Tile t : n)
-      t.refreshNeighbourHash();
+      t.refreshTerrainNeighbours();
   }
   
-  public void setUnit(Unit new_unit)
+  public final void setVisibility(EVisibility visibility_)
+  {
+    this.visibility = visibility_;
+    Iterable<Tile> n = grid.getNeighbours(this, true);
+    for(Tile t : n)
+      t.refreshVisibilityNeighbours();
+  }
+  
+  public final void setUnit(Unit new_unit)
   {
     if(unit == null || new_unit == null)
       unit = new_unit;
   }
 
-  public boolean unitStartEnter(Unit u)
+  public final boolean unitStartEnter(Unit u)
   {
     // tile cannot be entered while someone else is present, entering or leaving
     if(unit != null || unit_inbound != null)
@@ -195,13 +246,13 @@ public class Tile implements IVisible, IDynamic
     return true;
   }
   
-  public void unitCancelEnter(Unit u)
+  public final void unitCancelEnter(Unit u)
   {
     if(unit_inbound == u)
       unit_inbound = null;
   }
 
-  public void unitFinishEnter(Unit u)
+  public final void unitFinishEnter(Unit u)
   {
     if(unit_inbound == u)
     {
@@ -216,7 +267,7 @@ public class Tile implements IVisible, IDynamic
     // don't write pixel position or area, as these can be deduced
     out.writeObject(grid_position);
 
-    out.writeObject(type);
+    out.writeObject(terrain);
     
     infection.save(out);
   
@@ -233,7 +284,7 @@ public class Tile implements IVisible, IDynamic
   public void render(ICanvas canvas)
   {
     // walls
-    if(type == EType.WALL)
+    if(terrain == ETerrain.WALL)
     {
       canvas.setColour(C_WALL);
       canvas.box(pixel_area, true);
@@ -249,10 +300,11 @@ public class Tile implements IVisible, IDynamic
     infection.render(canvas);
     
     // black mask
-    if(!visible)
+    canvas.setColour(C_FOG);
+    canvas.text(""+(int)visibility_neighbours, pixel_position);
+    if(visibility != EVisibility.VISIBLE)
     {
-      canvas.setColour(C_FOG);
-      canvas.box(pixel_area, false);
+      //canvas.box(pixel_area, false);
     }
   }
   
@@ -260,7 +312,7 @@ public class Tile implements IVisible, IDynamic
   @Override
   public String toString()
   {
-    return type + " at " + grid_position + (unit == null ? "" : " contains " + unit);
+    return terrain + " at " + grid_position + (unit == null ? "" : " contains " + unit);
   }
   
   /* IMPLEMENTS -- IDYNAMIC */

@@ -75,9 +75,9 @@ public class InfectedCell extends Unit
   /* IMPLEMENTS -- UNIT */
 
   @Override
-  public Type getType()
+  public EType getType()
   {
-    return Type.INFECTED_CELL;
+    return EType.INFECTED_CELL;
   }
 
 }

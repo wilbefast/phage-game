@@ -30,7 +30,7 @@ public class UnitBrush extends ABrush
 {
   /* ATTRIBUTES */
   private int type_i = 0;
-  private Unit.Type[] types = Unit.Type.values();
+  private Unit.EType[] types = Unit.EType.values();
   
   
   
@@ -46,7 +46,7 @@ public class UnitBrush extends ABrush
   public void paint(Tile target)
   {
     // create unit
-    if(target.getType() != Tile.EType.WALL)
+    if(target.getType() != Tile.ETerrain.WALL)
       target.setUnit(Unit.fromType(types[type_i], target));
   }
   
