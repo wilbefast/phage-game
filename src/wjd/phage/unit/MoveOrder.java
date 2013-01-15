@@ -17,6 +17,7 @@
 package wjd.phage.unit;
 
 import java.util.Deque;
+import java.util.LinkedList;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
@@ -38,7 +39,7 @@ public class MoveOrder extends AUnitOrder
   private static final int ORDER_TIMEOUT = 15000;  // ms
   
   /* ATTRIBUTES */
-  private Deque<Tile> path;
+  private Deque<Tile> path = new LinkedList<Tile>();
   private Timer blocked_repath = new Timer(BLOCKED_TIMEOUT);
   private Timer blocked_cancel = new Timer(ORDER_TIMEOUT);
   private Timer repath_timer = new Timer(REPATH_INTERVAL);
@@ -77,7 +78,7 @@ public class MoveOrder extends AUnitOrder
   {
     // 0. repath periodically in case a better path has freed itself
     if(repath_timer.update(t_delta) == EUpdateResult.FINISHED)
-      recalculatePath();
+      return recalculatePath();
     
     // 1. get a new tile from the path if there is one
     if(owner.next_tile == null)
@@ -93,8 +94,7 @@ public class MoveOrder extends AUnitOrder
           return EUpdateResult.FINISHED;
         }
         // if not wait a few seconds and then try again
-        wait(t_delta);
-        return EUpdateResult.BLOCKED;
+        return wait(t_delta);
       }
     }
     
@@ -103,10 +103,7 @@ public class MoveOrder extends AUnitOrder
     {
       // move into a new tile...
       if(!owner.next_tile.unitStartEnter(owner))
-      {
-        wait(t_delta);
-        return EUpdateResult.BLOCKED;
-      }
+        return wait(t_delta);
 
       // ... and out of the current one
       owner.tile.setUnit(null);
@@ -122,13 +119,14 @@ public class MoveOrder extends AUnitOrder
     if(owner.progress.isFull())
     {
       // move to the new position
-      owner.next_tile.unitFinishEnter(owner);
       owner.progress.empty();
       owner.tile = owner.next_tile;
       owner.next_tile = null;
       // reset the "boredom" timers
       blocked_repath.empty();
       blocked_cancel.empty();
+      // tell the Tile to move the owner to another Tile
+      return EUpdateResult.MOVE_ME;
     }
     
     // 5. rinse and repeat
@@ -137,27 +135,35 @@ public class MoveOrder extends AUnitOrder
   
   /* SUBROUTINES */
   
-  private void wait(int t_delta)
+  private EUpdateResult wait(int t_delta)
   {
     // cancel order after a long wait
     if(blocked_cancel.update(t_delta) == EUpdateResult.FINISHED)
+    {
       owner.order = null;
+      return EUpdateResult.CANCEL;
+    }
     // recalculate path after a short wait
     else if(blocked_repath.update(t_delta) == EUpdateResult.FINISHED)
-      recalculatePath();
+      return recalculatePath();
+    else
+      return EUpdateResult.BLOCKED;
   }
   
-  private void recalculatePath()
+  private EUpdateResult recalculatePath()
   {
     if(owner.next_tile != null && owner.progress.isEmpty())
     {
-      owner.next_tile.unitCancelEnter(owner);
       owner.next_tile = null;
+      return EUpdateResult.CANCEL;
     }
+    
     Tile source = (owner.next_tile != null) ? owner.next_tile : owner.tile;
-    path = new PathSearch(source, destination).getPath();
+    new PathSearch(source, destination).writePath(path);
     // reset the "boredom" timers
     blocked_repath.empty();
     blocked_cancel.empty();
+    
+    return EUpdateResult.CONTINUE;
   }
 }

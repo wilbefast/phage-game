@@ -80,9 +80,9 @@ public class PathSearch
     return heuristic.estimate(tile.grid_position, end.tile.grid_position);
   }
   
-  public Deque<Tile> getPath()
+  public void writePath(Deque<Tile> result)
   {
-    Deque<Tile> result = new LinkedList<Tile>();
+    result.clear();
 
     // start at the end, trace backwards adding vertices
     SearchState current = hasResult ? end : fallback_plan;
@@ -92,7 +92,6 @@ public class PathSearch
       result.addFirst(current.tile);
       current = current.previous;
     }
-    return result;
   }
   
   /* SUBROUTINES */

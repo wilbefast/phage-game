@@ -24,9 +24,7 @@ import wjd.amb.control.IDynamic;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
-import wjd.math.Circle;
 import wjd.math.V2;
-import wjd.phage.level.FogOfWar;
 import wjd.phage.level.Tile;
 import wjd.util.BoundedValue;
 
@@ -101,17 +99,11 @@ public abstract class Unit implements IVisible, IDynamic, Serializable
   
   /* METHODS */
 
-  static FogOfWar f = new FogOfWar(null);
-  
   // constructors
   public Unit(Tile tile)
   {
-    f.grid = tile.grid;
-    
     this.tile = tile;
     position = tile.pixel_position.clone().add(Tile.HSIZE);
-    
-    f.reveal(new Circle(position, 500.0f));
   }
   
   // accessors

@@ -56,10 +56,10 @@ public class Tile implements IVisible, IDynamic
   private Infection infection = new Infection(this);
   
   // terrain type and type neighbourhood
-  private ETerrain terrain;
+  private ETerrain terrain = ETerrain.FLOOR;
   private byte[] terrain_neighbours = { 0, 0, 0, 0 };
   // visibility type and type neighbourhood
-  private EVisibility visibility;
+  private EVisibility visibility = EVisibility.VISIBLE;
   private byte visibility_neighbours = 0;
   
   /* METHODS */
@@ -67,29 +67,31 @@ public class Tile implements IVisible, IDynamic
   // constructors
   public Tile(int row, int col, ETerrain terrain_, TileGrid grid_)
   {
+    this.grid = grid_;
+    
     grid_position = new V2(col, row);
     pixel_position = grid_position.clone().scale(SIZE);
     pixel_area = new Rect(pixel_position, SIZE);
     this.terrain = terrain_;
-    this.grid = grid_;
+
   }
   
   public Tile(ObjectInputStream in, TileGrid grid) throws IOException, ClassNotFoundException
   {
+    this.grid = grid;
+    
     // retrieve grid position and deduce pixel position and area
     grid_position = (V2)in.readObject();
     pixel_position = grid_position.clone().scale(SIZE);
     pixel_area = new Rect(pixel_position, SIZE);
 
-    setTerrain((ETerrain)in.readObject());
+    terrain = (ETerrain)in.readObject();
     
     infection = new Infection(in, this);
     
     // read unit if unit is present to be read
     if((Boolean)in.readObject()) 
       unit = Unit.load(this, in);
-    
-    this.grid = grid;
   }
 
   // accessors
@@ -190,8 +192,15 @@ public class Tile implements IVisible, IDynamic
       
       // delta along the vertical axis
       pos.xy(grid_position.x, grid_position.y + d_row);
+      try
+      {
       if(grid.validGridPos(pos) && grid.gridToTile(pos).terrain == terrain)
         terrain_neighbours[corner] += 1;
+      }
+      catch(Exception e)
+      {
+        System.out.println("bink");
+      }
       
       // delta along the horizontal axis
       pos.xy(grid_position.x + d_col, grid_position.y);
@@ -246,22 +255,6 @@ public class Tile implements IVisible, IDynamic
     return true;
   }
   
-  public final void unitCancelEnter(Unit u)
-  {
-    if(unit_inbound == u)
-      unit_inbound = null;
-  }
-
-  public final void unitFinishEnter(Unit u)
-  {
-    if(unit_inbound == u)
-    {
-      // the inbound unit is now the present unit
-      unit = unit_inbound;
-      unit_inbound = null;
-    }
-  }
-
   public void save(ObjectOutputStream out) throws IOException 
   {
     // don't write pixel position or area, as these can be deduced
@@ -324,21 +317,34 @@ public class Tile implements IVisible, IDynamic
     if(unit != null)
     {
       EUpdateResult result = unit.update(t_delta);
-      // delete if required
-      if(result == EUpdateResult.DELETE_ME)
-        unit = null;
-      // replace if required
-      if(result == EUpdateResult.REPLACE_ME)
-        unit = unit.getReplacement();
+      switch(result)
+      {
+        case DELETE_ME:
+          unit = null;
+          break;
+          
+        case REPLACE_ME:
+          unit = unit.getReplacement();
+          break;
+      }
     }
     
     // update the inbound unit if there is one
     if(unit_inbound != null)
     {
       EUpdateResult result = unit_inbound.update(t_delta);
-      // delete if required
-      if(result == EUpdateResult.DELETE_ME)
-        unit_inbound = null;
+      
+      switch(result)
+      {
+        case MOVE_ME:
+          unit = unit_inbound;
+          // break left out intentionally
+          
+        case DELETE_ME:
+        case CANCEL:
+          unit_inbound = null;
+          break;
+      }
     }
     
     // update the infection

@@ -64,7 +64,7 @@ public class Macrophage extends Unit
   {    
     // execute order
     if(order != null)
-      order.update(t_delta);
+      return order.update(t_delta);
     
     // clear up infection if not moving
     else for(Tile t : tile.grid.getNeighbours(tile, true))

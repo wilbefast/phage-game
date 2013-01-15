@@ -46,6 +46,7 @@ public class LevelScene extends AScene
   /* ATTRIBUTES */
   private StrategyCamera camera;
   public TileGrid tilegrid;
+  public FogOfWar fog;
 
   /* METHODS */
   
@@ -65,6 +66,7 @@ public class LevelScene extends AScene
 
     // model
     tilegrid = new TileGrid(GRIDSIZE).clear();
+    fog = new FogOfWar(tilegrid);
 
     // view
     camera = new StrategyCamera(null); // FIXME add boundary
