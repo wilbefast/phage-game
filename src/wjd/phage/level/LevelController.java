@@ -145,7 +145,7 @@ public abstract class LevelController implements IController, IVisible, IDynamic
     try
     {
       level.tilegrid = new TileGrid(file);
-      level.fog.grid = level.tilegrid;
+      level.fog.setGrid(level.tilegrid);
     }
     catch (IOException ex)
     {

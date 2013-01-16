@@ -43,6 +43,7 @@ public class Macrophage extends Unit
   public Macrophage(Tile tile)
   {
     super(tile);
+    sight.setCentre(position);
   }
   
   

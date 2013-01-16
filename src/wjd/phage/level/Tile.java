@@ -59,7 +59,7 @@ public class Tile implements IVisible, IDynamic
   private ETerrain terrain = ETerrain.FLOOR;
   private byte[] terrain_neighbours = { 0, 0, 0, 0 };
   // visibility type and type neighbourhood
-  private EVisibility visibility = EVisibility.VISIBLE;
+  private EVisibility visibility = EVisibility.UNEXPLORED;
   private byte visibility_neighbours = 0;
   
   /* METHODS */
@@ -269,30 +269,33 @@ public class Tile implements IVisible, IDynamic
   @Override
   public void render(ICanvas canvas)
   {
-    // walls
-    if(terrain == ETerrain.WALL)
+    if(visibility == EVisibility.VISIBLE)
     {
-      canvas.setColour(C_WALL);
-      canvas.box(pixel_area, true);
+      // walls
+      if(terrain == ETerrain.WALL)
+      {
+        canvas.setColour(C_WALL);
+        canvas.box(pixel_area, true);
+      }
+
+      // units (optional)
+      if (unit != null)
+        unit.render(canvas);
+      if (unit_inbound != null)
+        unit_inbound.render(canvas);
+
+      // infection (optional)
+      infection.render(canvas);
     }
-    
-    // units (optional)
-    if (unit != null)
-      unit.render(canvas);
-    if (unit_inbound != null)
-      unit_inbound.render(canvas);
-    
-    // infection (optional)
-    infection.render(canvas);
-    
     // black mask
     
     
-    if(visibility != EVisibility.VISIBLE)
+    else if(visibility != EVisibility.VISIBLE)
     {
       //canvas.text(""+(int)visibility_neighbours, pixel_position);
       canvas.setColour(C_FOG);
-      canvas.box(pixel_area, false);
+      //canvas.setLineWidth(((float)visibility_neighbours) / 8);
+      canvas.box(pixel_area, true);
     }
   }
   

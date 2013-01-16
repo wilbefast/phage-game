@@ -20,7 +20,6 @@ package wjd.phage.level;
 import java.util.LinkedList;
 import java.util.List;
 import wjd.math.Circle;
-import wjd.math.M;
 import wjd.math.V2;
 import wjd.phage.unit.Unit;
 
@@ -32,7 +31,7 @@ import wjd.phage.unit.Unit;
 public class FogOfWar 
 {
   /* ATTRIBUTES */
-  public TileGrid grid;
+  private TileGrid grid;
   private Circle tileFlare = new Circle();
   private List<Circle> flares = new LinkedList<Circle>();
   
@@ -78,20 +77,27 @@ public class FogOfWar
     tileFlare.reset(flare).mult(Tile.ISIZE).centre.floor();
 
     //"defog" those part of the view mask that are in view
-    castLightV(-1, 0, -1, 0, tileFlare.centre); //NNW
-    //castLightV(0, 1, -1, 0, tileFlare.centre); //NNE
-    //castLightH(-1, 0, 1, 0, tileFlare.centre); //NEE
-    //castLightH(0, 1, 1, 0, tileFlare.centre); //SEE
-    castLightV(0, 1, 1, 0, tileFlare.centre); //SSE
-    /*castLightV(-1, 0, 1, 0, tileFlare.centre); //SSW
-    castLightH(0, 1, -1, 0, tileFlare.centre); //SWW
-    castLightH(-1, 0, -1, 0, tileFlare.centre); //NWW*/
+    castLightV(-1, 0, -1, 0, tileFlare.centre, tileFlare.centre); //NNW
+    castLightV(0, 1, -1, 0, tileFlare.centre, tileFlare.centre); //NNE
+    castLightH(-1, 0, 1, 0, tileFlare.centre, tileFlare.centre); //NEE
+    castLightH(0, 1, 1, 0, tileFlare.centre, tileFlare.centre); //SEE
+    castLightV(0, 1, 1, 0, tileFlare.centre, tileFlare.centre); //SSE
+    castLightV(-1, 0, 1, 0, tileFlare.centre, tileFlare.centre); //SSW
+    castLightH(0, 1, -1, 0, tileFlare.centre, tileFlare.centre); //SWW
+    castLightH(-1, 0, -1, 0, tileFlare.centre, tileFlare.centre); //NWW
+  }
+  
+  public void setGrid(TileGrid grid_)
+  {
+    this.grid = grid_;
+    recalculate();
   }
   
   /* SUBROUTINES */
 
   // Cast light, iterating x across y
-  private void castLightV(float slopeA, float slopeB, int side, int width, V2 tilePosStart)
+  private void castLightV(float slopeA, float slopeB, int side, int width, 
+                          V2 tilePosStart, V2 origin)
   {
     // if the source is inside a wall stop immediately
     Tile source_tile = grid.gridToTile(tilePosStart);
@@ -140,14 +146,15 @@ public class FogOfWar
             {
               // ... start a child scan, continue with the current one
               V2 newStart = tilePos.clone().add(-1, 0);
-              float newSlope = side * (newStart.x - tilePosStart.x) 
-                                    / (newStart.y - tilePosStart.y);
+              float newSlopeB = side * (newStart.x - origin.x) 
+                                    / (newStart.y - origin.y);
 
-              castLightV((float)M.maxAbs(minSlope, maxSlope), 
-                         newSlope, 
+              castLightV((float)Math.min(minSlope, maxSlope), 
+                         newSlopeB, 
                          side, 
                          Math.max(0, free_cells - 1), 
-                         newStart);
+                         newStart,
+                         origin);
               
               // break!
               inWall = true;
@@ -161,8 +168,8 @@ public class FogOfWar
             if(inWall)
             {
               // ...recalibrate the current scan's slopes
-              float newSlope = -side * (tilePos.x - tilePosStart.x)
-                                      / (tilePosStart.y-tilePos.y);
+              float newSlope = side * (tilePos.x - origin.x)
+                                      / (tilePos.y - origin.y);
               minSlope = newSlope;
               width = 0;
               
@@ -178,7 +185,8 @@ public class FogOfWar
   }
   
   // Cast light, iterating y across x
-  private void castLightH(float slopeA, float slopeB, int side, int width, V2 tilePosStart)
+  private void castLightH(float slopeA, float slopeB, int side, int width, 
+                          V2 tilePosStart, V2 origin)
   {
     // if the source is inside a wall stop immediately
     Tile source_tile = grid.gridToTile(tilePosStart);
@@ -227,14 +235,15 @@ public class FogOfWar
             {
               // ... start a child scan, continue with the current one
               V2 newStart = tilePos.clone().add(0, -1);
-              float newSlope = side * (newStart.y - tilePosStart.y) 
-                                    / (newStart.x - tilePosStart.x);
+              float newSlope = side * (newStart.y - origin.y) 
+                                    / (newStart.x - origin.x);
 
               castLightH((float)Math.min(minSlope, maxSlope), 
                          newSlope, 
                          side, 
                          Math.max(0, free_cells - 1), 
-                         newStart);
+                         newStart,
+                         origin);
               // break!
               inWall = true;
             }
@@ -247,8 +256,8 @@ public class FogOfWar
             if(inWall)
             {
               // ...recalibrate the current scan's slopes
-              float newSlope = -side * (tilePos.y - tilePosStart.y)
-                                      / (tilePosStart.x - tilePos.x);
+              float newSlope = side * (tilePos.y - origin.y)
+                                      / (tilePos.x - origin.x);
               minSlope = newSlope;
               width = 0;
               

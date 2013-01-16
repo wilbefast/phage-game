@@ -135,9 +135,15 @@ public class EditorController extends LevelController
     
     // "paint" or erase using the current brush
     if(input.isMouseClicking(IInput.EMouseButton.LEFT))
+    {
        brushes.current().touch(level.tilegrid, false);  // paint
-    if(input.isMouseClicking(IInput.EMouseButton.RIGHT))
+       level.fog.recalculate();
+    }
+    else if(input.isMouseClicking(IInput.EMouseButton.RIGHT))
+    {
       brushes.current().touch(level.tilegrid, true);    // erase
+      level.fog.recalculate();
+    }
         
 
     return EUpdateResult.CONTINUE;
