@@ -64,8 +64,8 @@ public class Tile implements IVisible, IDynamic
   public final Rect pixel_area;
   
   private Unit unit = null, unit_inbound = null;
-  private Concentration infection = new Concentration(this);
-  private Concentration antibodies = new Concentration(this);
+  private Concentration infection = new ViralConcentration(this);
+  private Concentration antibodies = new AntibodyConcentration(this);
   
   // terrain type and type neighbourhood
   private ETerrain terrain = ETerrain.FLOOR;
@@ -123,7 +123,8 @@ public class Tile implements IVisible, IDynamic
 
     terrain = (ETerrain)in.readObject();
     
-    infection = new Concentration(in, this);
+    infection = (ViralConcentration)Concentration.load(this, in);
+    antibodies = (AntibodyConcentration)Concentration.load(this, in);
     
     // read unit if unit is present to be read
     if((Boolean)in.readObject()) 
@@ -148,9 +149,19 @@ public class Tile implements IVisible, IDynamic
     return (terrain == ETerrain.FLOOR && unit == null && unit_inbound == null);
   }
   
-  public Concentration getInfection()
+  public Concentration getConcentration(Concentration.EType t)
   {
-    return infection;
+    switch(t)
+    {
+      case ANTIBODY:
+        return antibodies;
+          
+      case VIRUS:
+        return infection;
+
+      default:
+        return null;
+    }
   }
   
   // mutators
@@ -308,6 +319,7 @@ public class Tile implements IVisible, IDynamic
     out.writeObject(terrain);
     
     infection.save(out);
+    antibodies.save(out);
   
     // write a boolean to signify if unit is present or not
     out.writeObject(unit != null);
@@ -333,7 +345,6 @@ public class Tile implements IVisible, IDynamic
         terrain_stamp[i].render(canvas);
     }
     
-
     if(visibility == EVisibility.VISIBLE)
     {
       // units (optional)
@@ -344,6 +355,7 @@ public class Tile implements IVisible, IDynamic
 
       // infection (optional)
       infection.render(canvas);
+      antibodies.render(canvas);
     }
     
     // black mask
@@ -405,8 +417,9 @@ public class Tile implements IVisible, IDynamic
       }
     }
     
-    // update the infection
+    // update the concentrations
     infection.update(t_delta);
+    antibodies.update(t_delta);
     
     // all clear
     return EUpdateResult.CONTINUE;

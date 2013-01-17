@@ -16,7 +16,6 @@
  */
 package wjd.phage.editor;
 
-import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.phage.level.Tile;
 import wjd.phage.unit.Unit;

@@ -20,6 +20,7 @@ import wjd.amb.control.EUpdateResult;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.math.Circle;
+import wjd.phage.level.Concentration;
 import wjd.phage.level.Tile;
 
 /**
@@ -76,7 +77,8 @@ public class Macrophage extends Unit
     
     // clear up infection if not moving
     else for(Tile t : tile.grid.getNeighbours(tile, true))
-      t.getInfection().tryWithdraw(t_delta * VIRUS_EAT_SPEED);
+      t.getConcentration(Concentration.EType.VIRUS)
+        .tryWithdraw(t_delta * VIRUS_EAT_SPEED);
     
     // All clear
     return EUpdateResult.CONTINUE;

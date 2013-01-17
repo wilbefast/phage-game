@@ -20,6 +20,7 @@ package wjd.phage.unit;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
+import wjd.phage.level.Concentration;
 import wjd.phage.level.Tile;
 import wjd.util.Timer;
 
@@ -50,7 +51,7 @@ public class InfectedCell extends Unit
   {
     // generate infection periodically
     if(spawn_virus.update(t_delta) == EUpdateResult.FINISHED)
-      tile.getInfection().fill();
+      tile.getConcentration(Concentration.EType.VIRUS).fill();
     
     return EUpdateResult.CONTINUE;
   }

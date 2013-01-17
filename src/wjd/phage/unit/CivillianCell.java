@@ -20,6 +20,7 @@ package wjd.phage.unit;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
+import wjd.phage.level.Concentration;
 import wjd.phage.level.Tile;
 import wjd.util.BoundedValue;
 
@@ -61,7 +62,8 @@ public class CivillianCell extends Unit
   public EUpdateResult update(int t_delta)
   {
     // become an infected cell
-    infection.tryDeposit(tile.getInfection().balance() * INFECTION_SPEED * t_delta);
+    infection.tryDeposit(tile.getConcentration(Concentration.EType.VIRUS)
+                         .balance() * INFECTION_SPEED * t_delta);
     if(infection.isFull())
       return EUpdateResult.REPLACE_ME;
     

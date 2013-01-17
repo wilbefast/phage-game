@@ -57,7 +57,7 @@ public class EditorController extends LevelController
     super(level);
     // create brush cycler
     ABrush brush_array[] = { 
-      new TerrainBrush(), new UnitBrush(), new InfectionBrush() 
+      new TerrainBrush(), new UnitBrush(), new ConcentrationBrush() 
     };
     brushes = new ObjectCycle<ABrush>(brush_array);
   }

@@ -35,17 +35,64 @@ import wjd.util.Timer;
  * @author wdyce
  * @since Jan 2, 2013
  */
-public class Concentration extends BoundedValue implements IDynamic, IVisible
+public abstract class Concentration extends BoundedValue implements IDynamic, IVisible
 {
+  /* NESTING */
+  
+  public static enum EType 
+  { 
+    VIRUS(ViralConcentration.C), 
+    ANTIBODY(AntibodyConcentration.C);
+    
+        
+    public final Colour colour;
+    
+    private EType(Colour colour_)
+    {
+      this.colour = colour_;
+    }
+  };
+  
+  /* CLASS NAMESPACE FUNCTIONS */
+  
+  public static Concentration load(Tile tile,  ObjectInputStream in) 
+  throws IOException, ClassNotFoundException
+  {
+    // create an object of the correct type
+    EType t = (EType )in.readObject();
+    Concentration result = fromType(t, tile);
+    result.balance(in.readFloat());
+    return result;
+    
+  }
+  
+  public static Concentration fromType(EType type, Tile tile)
+  {
+    switch(type)
+    {
+      case VIRUS:
+        return new ViralConcentration(tile);
+        
+      case ANTIBODY:
+        return new AntibodyConcentration(tile);
+        
+        
+        // ... etc
+        
+        
+      default:
+        return null;
+    }
+  }
+  
   /* CONSTANTS */
   public static final int PARTICLE_MAX = 5;
   public static final float PARTICLE_SIZE = 5.0f;
   public static final float PARTICLE_MIN_ZOOM = 0.0f;
   
-  public static final int DISPERSION_PERIOD = 300;         // ms
-  public static final float DISPERSION_SPEED = 0.9f;       // fraction
+  public static final int DISPERSION_PERIOD = 450;         // ms
+  public static final float DISPERSION_SPEED = 0.99f;       // fraction
   
-  public static final boolean DO_DECAY = false;
   public static final int DECAY_PERIOD = 6000;             // ms
   public static final float DECAY_SPEED = 0.1f;            // fraction
   
@@ -54,14 +101,11 @@ public class Concentration extends BoundedValue implements IDynamic, IVisible
   
   public static final float CONCENTRATION_MIN = 0.09f;     // fraction
   
-  
-  public static final Colour C = new Colour(20, 206, 50);
-  
   /* CLASS ATTRIBUTES */
-  private static Random r = new Random();
+  protected static Random r = new Random();
   
   /* ATTRIBUTES */
-  private Tile container;
+  protected Tile container;
   private Timer dispersion_timer = new Timer(DISPERSION_PERIOD);
   private Timer decay_timer = new Timer(DECAY_PERIOD);
   private Timer move_timer = new Timer(MOVE_PERIOD);
@@ -82,21 +126,13 @@ public class Concentration extends BoundedValue implements IDynamic, IVisible
     r_seed = r.nextLong();
     
   }
-
-  public Concentration(ObjectInputStream in, Tile container_) throws IOException
-  {
-    super(1.0f);
-    balance(in.readFloat());
-    
-    this.container = container_;
-    r_seed = r.nextLong();
-  }
   
   
   // io
   
   void save(ObjectOutputStream out) throws IOException
   {
+    out.writeObject(getType());
     out.writeFloat(balance());
   }
   
@@ -112,7 +148,7 @@ public class Concentration extends BoundedValue implements IDynamic, IVisible
       r.setSeed(r_seed);
       
       // draw virus in black
-      canvas.setColour(C);
+      canvas.setColour(getColour());
       
       // probability of a viral particle being present and number present
       float p_virus = balance() * zoom;
@@ -138,7 +174,7 @@ public class Concentration extends BoundedValue implements IDynamic, IVisible
       disperse();
     
     // destroy infection
-    if(DO_DECAY && decay_timer.update(t_delta) == EUpdateResult.FINISHED)
+    if(doesDecay() && decay_timer.update(t_delta) == EUpdateResult.FINISHED)
       decay();
     
     // move particles
@@ -154,16 +190,7 @@ public class Concentration extends BoundedValue implements IDynamic, IVisible
   
   /* SUBROUTINES */
   
-  private void renderParticle(ICanvas canvas)
-  {
-    // use pixel_position as a local variable
-    container.pixel_position.add(
-      (float)(PARTICLE_SIZE+r.nextDouble() * (Tile.SIZE.x-2*PARTICLE_SIZE)), 
-      (float)(PARTICLE_SIZE+r.nextDouble() * (Tile.SIZE.y-2*PARTICLE_SIZE)));
-    canvas.circle(container.pixel_position, PARTICLE_SIZE, true);
-    // set it back to its original value afterwards!
-    container.pixel_position.xy(container.pixel_area.x, container.pixel_area.y);
-  }
+  protected abstract void renderParticle(ICanvas canvas);
   
   private void decay()
   {
@@ -184,9 +211,17 @@ public class Concentration extends BoundedValue implements IDynamic, IVisible
     float dispersion_per_tile = dispersion / neighbours.size();
     for(Tile t : neighbours)
       if(t.getType() == Tile.ETerrain.FLOOR)
-        dispersion -= t.getInfection().tryDeposit(dispersion_per_tile);
+        dispersion -= t.getConcentration(getType()).tryDeposit(dispersion_per_tile);
     
     // return whatever is left
     tryDeposit(dispersion);
   }
+  
+  /* INTERFACE */
+  
+  public abstract EType getType();
+  
+  public abstract Colour getColour();
+  
+  public abstract boolean doesDecay();
 }

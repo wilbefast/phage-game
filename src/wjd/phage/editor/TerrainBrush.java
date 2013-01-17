@@ -60,7 +60,7 @@ public class TerrainBrush extends ABrush
   @Override
   public void render(ICanvas canvas)
   {
-    canvas.setColour(Colour.BLUE);
+    canvas.setColour(Colour.RED);
     canvas.box(coverage, false);
   }
 }

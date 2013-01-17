@@ -16,8 +16,8 @@
  */
 package wjd.phage.editor;
 
-import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
+import wjd.phage.level.Concentration;
 import wjd.phage.level.Tile;
 
 /**
@@ -25,13 +25,18 @@ import wjd.phage.level.Tile;
  * @author wdyce
  * @since Nov 24, 2012
  */
-public class InfectionBrush extends ABrush
+public class ConcentrationBrush extends ABrush
 {
   /* CONSTANTS */
   private static final float PAINT_SPEED = 0.1f;
   
+  /* ATTRIBUTES */
+  
+  private int type_i = 0;
+  private Concentration.EType[] types = Concentration.EType.values();
+  
   /* METHODS */
-  public InfectionBrush()
+  public ConcentrationBrush()
   {
     super(true);
   }
@@ -41,19 +46,19 @@ public class InfectionBrush extends ABrush
   public void paint(Tile target)
   {
     if(target.getType() == Tile.ETerrain.FLOOR)
-      target.getInfection().tryDeposit(PAINT_SPEED);
+      target.getConcentration(types[type_i]).tryDeposit(PAINT_SPEED);
   }
   
   @Override
   public void erase(Tile target)
   {
-    target.getInfection().empty();
+    target.getConcentration(types[type_i]).empty();
   }
 
   @Override
   public void changeColour()
   {
-    /* do nothing */
+    type_i = (type_i + 1) % types.length;
   }
   
   /* IMPLEMENTS -- IVISIBLE */
@@ -61,7 +66,7 @@ public class InfectionBrush extends ABrush
   @Override
   public void render(ICanvas canvas)
   {
-    canvas.setColour(Colour.GREEN);
+    canvas.setColour(types[type_i].colour);
     canvas.box(coverage, false);
   }
 }
