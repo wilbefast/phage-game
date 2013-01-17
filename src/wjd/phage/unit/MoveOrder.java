@@ -57,7 +57,6 @@ public class MoveOrder extends AUnitOrder
   @Override
   public void render(ICanvas canvas)
   {
-    canvas.setCameraActive(true);
     canvas.setColour(Colour.YELLOW);
     V2 start = new V2(), end = new V2();
     start.reset(owner.position);

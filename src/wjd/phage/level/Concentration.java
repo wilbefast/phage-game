@@ -35,7 +35,7 @@ import wjd.util.Timer;
  * @author wdyce
  * @since Jan 2, 2013
  */
-public class Infection extends BoundedValue implements IDynamic, IVisible
+public class Concentration extends BoundedValue implements IDynamic, IVisible
 {
   /* CONSTANTS */
   public static final int PARTICLE_MAX = 5;
@@ -74,7 +74,7 @@ public class Infection extends BoundedValue implements IDynamic, IVisible
   
   // constructors
   
-  public Infection(Tile container_)
+  public Concentration(Tile container_)
   {
     super(1.0f);
     
@@ -83,7 +83,7 @@ public class Infection extends BoundedValue implements IDynamic, IVisible
     
   }
 
-  public Infection(ObjectInputStream in, Tile container_) throws IOException
+  public Concentration(ObjectInputStream in, Tile container_) throws IOException
   {
     super(1.0f);
     balance(in.readFloat());
@@ -135,11 +135,11 @@ public class Infection extends BoundedValue implements IDynamic, IVisible
   {
     // spread infection
     if(dispersion_timer.update(t_delta) == EUpdateResult.FINISHED)
-      virusDisperse();
+      disperse();
     
     // destroy infection
     if(DO_DECAY && decay_timer.update(t_delta) == EUpdateResult.FINISHED)
-      virusDecay();
+      decay();
     
     // move particles
     if(move_timer.update(t_delta) == EUpdateResult.FINISHED)
@@ -165,7 +165,7 @@ public class Infection extends BoundedValue implements IDynamic, IVisible
     container.pixel_position.xy(container.pixel_area.x, container.pixel_area.y);
   }
   
-  private void virusDecay()
+  private void decay()
   {
     // some of the viral particles are destroyed...
     tryWithdrawPercent(DECAY_SPEED);
@@ -173,7 +173,7 @@ public class Infection extends BoundedValue implements IDynamic, IVisible
       empty();
   }
   
-  private void virusDisperse()
+  private void disperse()
   {
     if(balance() < CONCENTRATION_MIN)
       return;

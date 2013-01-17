@@ -89,16 +89,21 @@ public class PlayController extends LevelController
   public void render(ICanvas canvas)
   {
     // render unit paths (debug)
+    canvas.setCameraActive(true);
     for(Unit u : selected_units)
       u.renderOverlay(canvas);
     
     // render selection box
+    canvas.setCameraActive(false);
     if(selection_box.w != 0 && selection_box.h != 0)
     {
       canvas.setLineWidth(2.0f);
       canvas.setColour(Colour.TEAL);
       canvas.box(selection_box, false);
     }
+    
+    // FIXME -- should not be necessary but AWTCanvas does not conserve order
+    canvas.setCameraActive(true);
   }
   
   /* IMPLEMENTS -- IDYNAMIC */

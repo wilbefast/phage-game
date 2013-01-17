@@ -43,9 +43,8 @@ public class Tile implements IVisible, IDynamic
   public static final V2 HSIZE = SIZE.clone().scale(0.5f);
   public static final V2 ISIZE = SIZE.clone().inv();
   
-  public static final Colour C_WALL = new Colour(97, 0, 21);
+  public static final Colour C_WALL = new Colour(234, 99, 164);
   public static final Colour C_FOG = new Colour(0, 0, 0, 128);
-  public static final Colour C_FOG_WALL = C_WALL.clone().avg(C_FOG);
 
   /* NESTING */
   public static enum ETerrain { FLOOR, WALL }
@@ -65,11 +64,13 @@ public class Tile implements IVisible, IDynamic
   public final Rect pixel_area;
   
   private Unit unit = null, unit_inbound = null;
-  private Infection infection = new Infection(this);
+  private Concentration infection = new Concentration(this);
+  private Concentration antibodies = new Concentration(this);
   
   // terrain type and type neighbourhood
   private ETerrain terrain = ETerrain.FLOOR;
-  private byte[] terrain_neighbours = { 0, 0, 0, 0 };
+  private byte[] terrain_neighbours = { 4, 4, 4, 4 };
+  private boolean terrain_surrounded = true;
   private TilesetCanvas[] terrain_stamp = { null, null, null, null};
   // visibility type and type neighbourhood
   private EVisibility visibility = EVisibility.UNEXPLORED;
@@ -122,7 +123,7 @@ public class Tile implements IVisible, IDynamic
 
     terrain = (ETerrain)in.readObject();
     
-    infection = new Infection(in, this);
+    infection = new Concentration(in, this);
     
     // read unit if unit is present to be read
     if((Boolean)in.readObject()) 
@@ -147,7 +148,7 @@ public class Tile implements IVisible, IDynamic
     return (terrain == ETerrain.FLOOR && unit == null && unit_inbound == null);
   }
   
-  public Infection getInfection()
+  public Concentration getInfection()
   {
     return infection;
   }
@@ -218,6 +219,8 @@ public class Tile implements IVisible, IDynamic
     0|x-| 1|--| 2|-x| 3|--|
      |--|  |x-|  |--|  |-x|
     */
+    
+    //terrain_surrounded = false;
 
     V2 pos = new V2();
     
@@ -245,9 +248,13 @@ public class Tile implements IVisible, IDynamic
     }
     
     // update the view to match the model
+    terrain_surrounded = true;
     for(int i = 0; i < 4; i++)
+    {
+      terrain_surrounded = (terrain_surrounded && terrain_neighbours[i] == 4);
       terrain_stamp[i].tile_i = (int)terrain_neighbours[i] + (i%2)*5;
       //5 columns per row => +1*5 skips a row, +0*5 doesn't skip
+    }
   }
   
   public final void setTerrain(ETerrain terrain_)
@@ -317,9 +324,12 @@ public class Tile implements IVisible, IDynamic
     // walls
     if(terrain == ETerrain.WALL)
     {
-      //canvas.setColour((visibility == EVisibility.VISIBLE) ? C_WALL : C_FOG_WALL);
-      //canvas.box(pixel_area, true);
-      for(int i = 0; i < 4; i++)
+      if(terrain_surrounded)
+      {
+        canvas.setColour(C_WALL);
+        canvas.box(pixel_area, true);
+      }
+      else for(int i = 0; i < 4; i++)
         terrain_stamp[i].render(canvas);
     }
     
@@ -339,7 +349,7 @@ public class Tile implements IVisible, IDynamic
     // black mask
     else
     {
-      if(visibility_neighbours < 15 && terrain != ETerrain.WALL)
+      if(visibility_neighbours < 15)
         fog_stamp.render(canvas);
       else
       {

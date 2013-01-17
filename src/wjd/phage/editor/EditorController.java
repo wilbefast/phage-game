@@ -68,6 +68,7 @@ public class EditorController extends LevelController
   public void render(ICanvas canvas)
   {
     // draw gui
+    canvas.setCameraActive(false);
     canvas.setColour(Colour.YELLOW);
     canvas.box(GUI_BOX, true);
     canvas.setColour(Colour.BLACK);
