@@ -137,6 +137,7 @@ public abstract class LevelController implements IController, IVisible, IDynamic
   private void save(File file)
   {
     level.tilegrid.save(file);
+    System.gc();
   }
   
   private void load(File file)
@@ -146,6 +147,7 @@ public abstract class LevelController implements IController, IVisible, IDynamic
     {
       level.tilegrid = new TileGrid(file);
       level.fog.setGrid(level.tilegrid);
+      System.gc();
     }
     catch (IOException ex)
     {

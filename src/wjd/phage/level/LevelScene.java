@@ -70,6 +70,9 @@ public class LevelScene extends AScene
 
     // view
     camera = new StrategyCamera(null); // FIXME add boundary
+    
+    // clean up extra memory allocated during startup
+    System.gc();
   }
 
   // mutators

@@ -37,10 +37,15 @@ public abstract class Main
     @Override
     public void load(ATextureManager textureManager, AAudioManager audioManager)
     {
-      // load textures
+      // terrain tileset
+      textureManager.addTexture("wall_tiles", ATextureManager.ImageFileType.PNG);
+      textureManager.addTileset("walls", "wall_tiles", new Rect(0, 0, 16, 16), 5, 2);
+      
+      // fog tileset
       textureManager.addTexture("fog_tiles", ATextureManager.ImageFileType.PNG);
       textureManager.addTileset("fog", "fog_tiles", new Rect(0, 0, 32, 32), 8, 2);
       
+      // initialise classes from resources
       Tile.getResourceHandles(textureManager);
 
     }

@@ -52,10 +52,11 @@ public class Tile implements IVisible, IDynamic
   public static enum EVisibility { UNEXPLORED, UNSEEN, VISIBLE }
   
   /* RESOURCES */
-  private static Tileset fog;
+  private static Tileset fog, walls;
   public static void getResourceHandles(ATextureManager textureManager)
   {
     fog = textureManager.getTileset("fog");
+    walls = textureManager.getTileset("walls");
   }
 
   /* ATTRIBUTES */
@@ -69,6 +70,7 @@ public class Tile implements IVisible, IDynamic
   // terrain type and type neighbourhood
   private ETerrain terrain = ETerrain.FLOOR;
   private byte[] terrain_neighbours = { 0, 0, 0, 0 };
+  private TilesetCanvas[] terrain_stamp = { null, null, null, null};
   // visibility type and type neighbourhood
   private EVisibility visibility = EVisibility.UNEXPLORED;
   private byte visibility_neighbours = 15; // 1 + 2 + 4 + 8
@@ -84,7 +86,27 @@ public class Tile implements IVisible, IDynamic
     grid_position = new V2(col, row);
     pixel_position = grid_position.clone().scale(SIZE);
     pixel_area = new Rect(pixel_position, SIZE);
+    
+    // terrain
     this.terrain = terrain_;
+    /*
+     Corners are numbered as follows
+    0|x-| 1|--| 2|-x| 3|--|
+     |--|  |x-|  |--|  |-x|
+     */
+    Rect[] corners = 
+    {
+      new Rect(pixel_position.x, pixel_position.y, HSIZE.x, HSIZE.y),
+      new Rect(pixel_position.x, pixel_position.y + HSIZE.y, HSIZE.x, HSIZE.y),
+      new Rect(pixel_position.x + HSIZE.x, pixel_position.y, HSIZE.x, HSIZE.y),
+      new Rect(pixel_position.x + HSIZE.x, pixel_position.y + HSIZE.y, HSIZE.x, HSIZE.y)
+    };
+    for(int i = 0; i < 4; i++)
+      terrain_stamp[i] = new TilesetCanvas(walls, corners[i]);
+    terrain_stamp[2].setFlip(true);
+    terrain_stamp[3].setFlip(true);
+    
+    // fog
     fog_stamp = new TilesetCanvas(fog, pixel_area);
 
   }
@@ -221,6 +243,11 @@ public class Tile implements IVisible, IDynamic
       && grid.validGridPos(pos) && grid.gridToTile(pos).terrain == terrain)
         terrain_neighbours[corner] = 4;
     }
+    
+    // update the view to match the model
+    for(int i = 0; i < 4; i++)
+      terrain_stamp[i].tile_i = (int)terrain_neighbours[i] + (i%2)*5;
+      //5 columns per row => +1*5 skips a row, +0*5 doesn't skip
   }
   
   public final void setTerrain(ETerrain terrain_)
@@ -290,8 +317,10 @@ public class Tile implements IVisible, IDynamic
     // walls
     if(terrain == ETerrain.WALL)
     {
-      canvas.setColour((visibility == EVisibility.VISIBLE) ? C_WALL : C_FOG_WALL);
-      canvas.box(pixel_area, true);
+      //canvas.setColour((visibility == EVisibility.VISIBLE) ? C_WALL : C_FOG_WALL);
+      //canvas.box(pixel_area, true);
+      for(int i = 0; i < 4; i++)
+        terrain_stamp[i].render(canvas);
     }
     
 
@@ -311,9 +340,7 @@ public class Tile implements IVisible, IDynamic
     else
     {
       if(visibility_neighbours < 15 && terrain != ETerrain.WALL)
-      {
         fog_stamp.render(canvas);
-      }
       else
       {
         canvas.setColour(C_FOG);
