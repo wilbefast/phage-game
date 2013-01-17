@@ -43,7 +43,7 @@ public class EditorController extends LevelController
   };
   private static final V2 gui_pos[] = 
   {
-    new V2(32, 8), new V2(128, 8), new V2(224, 8)
+    new V2(32, 16), new V2(128, 16), new V2(224, 16)
   };
 
   /* ATTRIBUTES */

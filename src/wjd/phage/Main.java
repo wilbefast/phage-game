@@ -17,8 +17,12 @@
 package wjd.phage;
 
 import wjd.amb.awt.AWTAmbition;
-import wjd.amb.lwjgl.LWJGLAmbition;
+import wjd.amb.resources.AAudioManager;
+import wjd.amb.resources.ATextureManager;
+import wjd.amb.resources.IResourceLoader;
+import wjd.math.Rect;
 import wjd.math.V2;
+import wjd.phage.level.Tile;
 import wjd.phage.menus.TitleScene;
 
 /** 
@@ -27,9 +31,25 @@ import wjd.phage.menus.TitleScene;
 */
 public abstract class Main 
 {
+  private static IResourceLoader loadScript = new IResourceLoader()
+  {
+    /* IMPLEMENTS -- IRESOURCELOADER */
+    @Override
+    public void load(ATextureManager textureManager, AAudioManager audioManager)
+    {
+      // load textures
+      textureManager.addTexture("fog_tiles", ATextureManager.ImageFileType.PNG);
+      textureManager.addTileset("fog", "fog_tiles", new Rect(0, 0, 32, 32), 8, 2);
+      
+      Tile.getResourceHandles(textureManager);
+
+    }
+  };
+  
   public static void main(String args[])
   {
-    LWJGLAmbition.launch("Phage", new V2(640, 480), new TitleScene(), null);
-    //AWTAmbition.launch("Phage", new V2(640, 480), new TitleScene(), null);
+
+    //LWJGLAmbition.launch("Phage", new V2(640, 480), new TitleScene(), loadScript);
+    AWTAmbition.launch("Phage", new V2(640, 480), new TitleScene(), loadScript);
   }
 }

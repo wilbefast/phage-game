@@ -93,9 +93,12 @@ public class PlayController extends LevelController
       u.renderOverlay(canvas);
     
     // render selection box
-    canvas.setLineWidth(2.0f);
-    canvas.setColour(Colour.TEAL);
-    canvas.box(selection_box, false);
+    if(selection_box.w != 0 && selection_box.h != 0)
+    {
+      canvas.setLineWidth(2.0f);
+      canvas.setColour(Colour.TEAL);
+      canvas.box(selection_box, false);
+    }
   }
   
   /* IMPLEMENTS -- IDYNAMIC */

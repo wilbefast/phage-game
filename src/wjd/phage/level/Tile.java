@@ -21,9 +21,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import wjd.amb.control.EUpdateResult;
 import wjd.amb.control.IDynamic;
+import wjd.amb.resources.ATextureManager;
+import wjd.amb.resources.Tileset;
 import wjd.amb.view.Colour;
 import wjd.amb.view.ICanvas;
 import wjd.amb.view.IVisible;
+import wjd.amb.view.TilesetCanvas;
 import wjd.math.Rect;
 import wjd.math.V2;
 import wjd.phage.unit.Unit;
@@ -41,11 +44,19 @@ public class Tile implements IVisible, IDynamic
   public static final V2 ISIZE = SIZE.clone().inv();
   
   public static final Colour C_WALL = new Colour(97, 0, 21);
-  public static final Colour C_FOG = new Colour(55, 55, 55);
+  public static final Colour C_FOG = new Colour(0, 0, 0, 128);
+  public static final Colour C_FOG_WALL = C_WALL.clone().avg(C_FOG);
 
   /* NESTING */
   public static enum ETerrain { FLOOR, WALL }
   public static enum EVisibility { UNEXPLORED, UNSEEN, VISIBLE }
+  
+  /* RESOURCES */
+  private static Tileset fog;
+  public static void getResourceHandles(ATextureManager textureManager)
+  {
+    fog = textureManager.getTileset("fog");
+  }
 
   /* ATTRIBUTES */
   public final TileGrid grid;
@@ -60,7 +71,8 @@ public class Tile implements IVisible, IDynamic
   private byte[] terrain_neighbours = { 0, 0, 0, 0 };
   // visibility type and type neighbourhood
   private EVisibility visibility = EVisibility.UNEXPLORED;
-  private byte visibility_neighbours = 0;
+  private byte visibility_neighbours = 15; // 1 + 2 + 4 + 8
+  private TilesetCanvas fog_stamp;
   
   /* METHODS */
   
@@ -73,6 +85,7 @@ public class Tile implements IVisible, IDynamic
     pixel_position = grid_position.clone().scale(SIZE);
     pixel_area = new Rect(pixel_position, SIZE);
     this.terrain = terrain_;
+    fog_stamp = new TilesetCanvas(fog, pixel_area);
 
   }
   
@@ -83,7 +96,7 @@ public class Tile implements IVisible, IDynamic
     // retrieve grid position and deduce pixel position and area
     grid_position = (V2)in.readObject();
     pixel_position = grid_position.clone().scale(SIZE);
-    pixel_area = new Rect(pixel_position, SIZE);
+    pixel_area = new Rect(pixel_position, SIZE).scale(1.1f);
 
     terrain = (ETerrain)in.readObject();
     
@@ -92,6 +105,8 @@ public class Tile implements IVisible, IDynamic
     // read unit if unit is present to be read
     if((Boolean)in.readObject()) 
       unit = Unit.load(this, in);
+    
+    fog_stamp = new TilesetCanvas(fog, pixel_area);
   }
 
   // accessors
@@ -129,7 +144,7 @@ public class Tile implements IVisible, IDynamic
         ---                     */
     
     pos.y--;
-    if(grid.validGridPos(pos) && grid.gridToTile(pos).visibility == visibility)
+    if(!grid.validGridPos(pos) || grid.gridToTile(pos).visibility == visibility)
       visibility_neighbours += 1;
       
     /*  ---
@@ -137,7 +152,7 @@ public class Tile implements IVisible, IDynamic
         ---                     */
     
     pos.x++; pos.y++;
-    if(grid.validGridPos(pos) && grid.gridToTile(pos).visibility == visibility)
+    if(!grid.validGridPos(pos) || grid.gridToTile(pos).visibility == visibility)
       visibility_neighbours += 2;
     
     /*  ---
@@ -145,7 +160,7 @@ public class Tile implements IVisible, IDynamic
         -x-                     */
     
     pos.x--; pos.y++;
-    if(grid.validGridPos(pos) && grid.gridToTile(pos).visibility == visibility)
+    if(!grid.validGridPos(pos) || grid.gridToTile(pos).visibility == visibility)
       visibility_neighbours += 4;
     
     /*  ---
@@ -153,10 +168,10 @@ public class Tile implements IVisible, IDynamic
         ---                     */
     
     pos.x--; pos.y--;
-    if(grid.validGridPos(pos) && grid.gridToTile(pos).visibility == visibility)
+    if(!grid.validGridPos(pos) || grid.gridToTile(pos).visibility == visibility)
       visibility_neighbours += 8;
 
-   
+    fog_stamp.tile_i = (int)visibility_neighbours;
   }
   
   public void refreshTerrainNeighbours()
@@ -218,6 +233,7 @@ public class Tile implements IVisible, IDynamic
       infection.empty();
     
     // recalculate the hash
+    refreshTerrainNeighbours();
     Iterable<Tile> n = grid.getNeighbours(this, true);
     for(Tile t : n)
       t.refreshTerrainNeighbours();
@@ -226,6 +242,8 @@ public class Tile implements IVisible, IDynamic
   public final void setVisibility(EVisibility visibility_)
   {
     this.visibility = visibility_;
+    refreshVisibilityNeighbours();
+    
     Iterable<Tile> n = grid.getNeighbours(this, true);
     for(Tile t : n)
       t.refreshVisibilityNeighbours();
@@ -269,15 +287,16 @@ public class Tile implements IVisible, IDynamic
   @Override
   public void render(ICanvas canvas)
   {
+    // walls
+    if(terrain == ETerrain.WALL)
+    {
+      canvas.setColour((visibility == EVisibility.VISIBLE) ? C_WALL : C_FOG_WALL);
+      canvas.box(pixel_area, true);
+    }
+    
+
     if(visibility == EVisibility.VISIBLE)
     {
-      // walls
-      if(terrain == ETerrain.WALL)
-      {
-        canvas.setColour(C_WALL);
-        canvas.box(pixel_area, true);
-      }
-
       // units (optional)
       if (unit != null)
         unit.render(canvas);
@@ -287,15 +306,19 @@ public class Tile implements IVisible, IDynamic
       // infection (optional)
       infection.render(canvas);
     }
+    
     // black mask
-    
-    
-    else if(visibility != EVisibility.VISIBLE)
+    else
     {
-      //canvas.text(""+(int)visibility_neighbours, pixel_position);
-      canvas.setColour(C_FOG);
-      //canvas.setLineWidth(((float)visibility_neighbours) / 8);
-      canvas.box(pixel_area, true);
+      if(visibility_neighbours < 15 && terrain != ETerrain.WALL)
+      {
+        fog_stamp.render(canvas);
+      }
+      else
+      {
+        canvas.setColour(C_FOG);
+        canvas.box(pixel_area, true);
+      }
     }
   }
   
